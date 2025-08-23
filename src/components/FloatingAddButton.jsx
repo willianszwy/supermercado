@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { normalizeProductText } from '../utils/textUtils'
-import MicrophoneIcon from './MicrophoneIcon'
 import PlusIcon from './PlusIcon'
+import SimplePlusIcon from './SimplePlusIcon'
 import RemoveIcon from './RemoveIcon'
 
 function FloatingAddButton({ onAddProduct }) {
@@ -45,7 +45,6 @@ function FloatingAddButton({ onAddProduct }) {
 function AddProductModal({ onAddProduct, onClose }) {
   const [productName, setProductName] = useState('')
   const [quantity, setQuantity] = useState(1)
-  const [isListening, setIsListening] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -63,39 +62,6 @@ function AddProductModal({ onAddProduct, onClose }) {
     setQuantity(prev => Math.max(1, prev - 1))
   }
 
-  const startVoiceInput = () => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert('Seu navegador não suporta reconhecimento de voz')
-      return
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    const recognition = new SpeechRecognition()
-
-    recognition.lang = 'pt-BR'
-    recognition.continuous = false
-    recognition.interimResults = false
-
-    setIsListening(true)
-
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript
-      const normalizedTranscript = normalizeProductText(transcript)
-      setProductName(normalizedTranscript)
-      setIsListening(false)
-    }
-
-    recognition.onerror = () => {
-      setIsListening(false)
-      alert('Erro no reconhecimento de voz')
-    }
-
-    recognition.onend = () => {
-      setIsListening(false)
-    }
-
-    recognition.start()
-  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -120,33 +86,14 @@ function AddProductModal({ onAddProduct, onClose }) {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Nome do produto
             </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={productName}
-                onChange={(e) => setProductName(e.target.value)}
-                placeholder="Digite o nome..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue"
-                autoFocus
-              />
-              <button
-                type="button"
-                onClick={startVoiceInput}
-                disabled={isListening}
-                className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center transition-all ${
-                  isListening 
-                    ? 'border-red-400 bg-red-50 text-red-600' 
-                    : 'border-primary-blue bg-transparent text-primary-blue hover:bg-primary-blue hover:text-white'
-                }`}
-              >
-                <MicrophoneIcon className="w-5 h-5" />
-              </button>
-            </div>
-            {isListening && (
-              <p className="text-sm text-red-600 mt-1 animate-pulse">
-                Ouvindo... fale agora
-              </p>
-            )}
+            <input
+              type="text"
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+              placeholder="Digite o nome..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue"
+              autoFocus
+            />
           </div>
 
           {/* Quantity */}
@@ -170,7 +117,7 @@ function AddProductModal({ onAddProduct, onClose }) {
                 onClick={incrementQuantity}
                 className="w-10 h-10 rounded-full bg-primary-green text-white flex items-center justify-center text-xl font-bold hover:bg-primary-green-dark transition-colors"
               >
-                <PlusIcon className="w-5 h-5" />
+                <SimplePlusIcon className="w-5 h-5" />
               </button>
             </div>
           </div>

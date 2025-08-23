@@ -7,23 +7,17 @@ function HelpIcon({ className = "w-5 h-5" }) {
       className={className}
     >
       <path 
-        d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" 
-        stroke="currentColor" 
-        strokeWidth="2"
-      />
-      <path 
-        d="M10.5 8.67709C10.8665 8.26188 11.4027 8 12 8C13.1046 8 14 8.89543 14 10C14 10.9337 13.3601 11.718 12.4949 11.9383C12.2273 12.0064 12 12.2239 12 12.5V12.5V13" 
+        d="M12 20H12.01" 
         stroke="currentColor" 
         strokeWidth="2" 
         strokeLinecap="round" 
         strokeLinejoin="round"
       />
       <path 
-        d="M12 16H12.01" 
+        d="M7 9C7 7.87439 7.37194 6.83566 7.99963 6C8.91184 4.78555 10.3642 4 12 4C14.7614 4 17 6.23858 17 9C17 11.4212 15.279 13.4405 12.9936 13.9013C12.4522 14.0104 12 14.4477 12 15V15V16" 
         stroke="currentColor" 
         strokeWidth="2" 
-        strokeLinecap="round" 
-        strokeLinejoin="round"
+        strokeLinecap="round"
       />
     </svg>
   )

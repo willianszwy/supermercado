@@ -7,8 +7,28 @@ function ImportIcon({ className = "w-5 h-5" }) {
       className={className}
     >
       <path 
-        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM7 13l5-5 5 5-1.41 1.41L13 11.83V19h-2v-7.17l-2.59 2.58L7 13z" 
-        fill="currentColor"
+        d="M9.31995 11.6799L11.8799 14.2399L14.4399 11.6799" 
+        stroke="currentColor" 
+        strokeWidth="1.5" 
+        strokeMiterlimit="10" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+      />
+      <path 
+        d="M11.88 4V14.17" 
+        stroke="currentColor" 
+        strokeWidth="1.5" 
+        strokeMiterlimit="10" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+      />
+      <path 
+        d="M20 12.1799C20 16.5999 17 20.1799 12 20.1799C7 20.1799 4 16.5999 4 12.1799" 
+        stroke="currentColor" 
+        strokeWidth="1.5" 
+        strokeMiterlimit="10" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
       />
     </svg>
   )

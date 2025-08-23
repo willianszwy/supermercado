@@ -102,24 +102,7 @@ function Tour({ isOpen, onClose }) {
       return 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'
     }
 
-    const rect = targetElement.getBoundingClientRect()
-    const tooltipWidth = 300
-    const tooltipHeight = 200
-
-    switch (currentStepData.position) {
-      case 'top':
-        return `fixed left-1/2 transform -translate-x-1/2`
-      case 'top-center':
-        return `fixed left-1/2 transform -translate-x-1/2`
-      case 'bottom':
-        return `fixed left-1/2 transform -translate-x-1/2`
-      case 'top-left':
-        return `fixed`
-      case 'bottom-right':
-        return `fixed`
-      default:
-        return 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'
-    }
+    return 'fixed'
   }
 
   const getTooltipStyles = () => {
@@ -128,21 +111,56 @@ function Tour({ isOpen, onClose }) {
     }
 
     const rect = targetElement.getBoundingClientRect()
+    const tooltipWidth = window.innerWidth > 480 ? 320 : window.innerWidth - 40
+    const tooltipHeight = 200
+    const margin = 20
 
+    // Para mobile, sempre posicionar no centro ou embaixo
+    if (window.innerWidth <= 768) {
+      // Se o elemento está na parte superior, mostra embaixo
+      if (rect.top < window.innerHeight / 2) {
+        return { 
+          top: Math.min(rect.bottom + margin, window.innerHeight - tooltipHeight - margin),
+          left: margin,
+          right: margin
+        }
+      } else {
+        // Se está na parte inferior, mostra em cima
+        return { 
+          bottom: window.innerHeight - rect.top + margin,
+          left: margin,
+          right: margin
+        }
+      }
+    }
+
+    // Lógica para desktop
     switch (currentStepData.position) {
       case 'top':
-        return { top: rect.top - 220, left: rect.left + (rect.width / 2) - 150 }
+        return { 
+          top: Math.max(margin, rect.top - tooltipHeight - margin), 
+          left: Math.max(margin, Math.min(window.innerWidth - tooltipWidth - margin, rect.left + (rect.width / 2) - tooltipWidth/2))
+        }
       case 'top-center':
         return { 
-          top: rect.top - 220, 
-          left: Math.max(20, Math.min(window.innerWidth - 320 - 20, rect.left + (rect.width / 2) - 150))
+          top: Math.max(margin, rect.top - tooltipHeight - margin), 
+          left: Math.max(margin, Math.min(window.innerWidth - tooltipWidth - margin, rect.left + (rect.width / 2) - tooltipWidth/2))
         }
       case 'bottom':
-        return { top: rect.bottom + 20, left: rect.left + (rect.width / 2) - 150 }
+        return { 
+          top: Math.min(rect.bottom + margin, window.innerHeight - tooltipHeight - margin), 
+          left: Math.max(margin, Math.min(window.innerWidth - tooltipWidth - margin, rect.left + (rect.width / 2) - tooltipWidth/2))
+        }
       case 'top-left':
-        return { top: rect.top - 220, left: Math.max(20, rect.left - 100) }
+        return { 
+          top: Math.max(margin, rect.top - tooltipHeight - margin), 
+          left: Math.max(margin, rect.left - 100)
+        }
       case 'bottom-right':
-        return { top: rect.bottom + 20, left: Math.max(20, rect.right - 250) }
+        return { 
+          top: Math.min(rect.bottom + margin, window.innerHeight - tooltipHeight - margin), 
+          left: Math.max(margin, Math.min(window.innerWidth - tooltipWidth - margin, rect.right - tooltipWidth))
+        }
       default:
         return {}
     }
@@ -168,12 +186,12 @@ function Tour({ isOpen, onClose }) {
 
       {/* Tooltip */}
       <div
-        className={`${getTooltipPosition()} w-80 max-w-sm bg-white rounded-lg shadow-xl z-50 p-6`}
+        className={`${getTooltipPosition()} w-80 max-w-[calc(100vw-2.5rem)] md:max-w-sm bg-white rounded-lg shadow-xl z-50 p-4 md:p-6`}
         style={getTooltipStyles()}
       >
         {/* Cabeçalho */}
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">
+        <div className="flex items-center justify-between mb-3 md:mb-4">
+          <h3 className="text-base md:text-lg font-semibold text-gray-800 pr-2">
             {currentStepData.title}
           </h3>
           <button
@@ -185,12 +203,12 @@ function Tour({ isOpen, onClose }) {
         </div>
 
         {/* Conteúdo */}
-        <p className="text-gray-600 leading-relaxed mb-6">
+        <p className="text-sm md:text-base text-gray-600 leading-relaxed mb-4 md:mb-6">
           {currentStepData.content}
         </p>
 
         {/* Progresso */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3 md:mb-4">
           <div className="flex space-x-1">
             {tourSteps.map((_, index) => (
               <div
@@ -201,7 +219,7 @@ function Tour({ isOpen, onClose }) {
               />
             ))}
           </div>
-          <span className="text-sm text-gray-500">
+          <span className="text-xs md:text-sm text-gray-500">
             {currentStep + 1} de {tourSteps.length}
           </span>
         </div>
@@ -211,7 +229,7 @@ function Tour({ isOpen, onClose }) {
           <button
             onClick={prevStep}
             disabled={currentStep === 0}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-3 md:px-4 py-2 rounded-lg text-sm md:text-base font-medium transition-colors ${
               currentStep === 0
                 ? 'text-gray-400 cursor-not-allowed'
                 : 'text-gray-600 hover:bg-gray-100'
@@ -223,13 +241,13 @@ function Tour({ isOpen, onClose }) {
           <div className="flex gap-2">
             <button
               onClick={skipTour}
-              className="px-4 py-2 text-gray-600 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+              className="px-3 md:px-4 py-2 text-gray-600 rounded-lg text-sm md:text-base font-medium hover:bg-gray-100 transition-colors"
             >
               Pular
             </button>
             <button
               onClick={nextStep}
-              className="px-4 py-2 bg-primary-blue text-white rounded-lg font-medium hover:bg-primary-blue-dark transition-colors"
+              className="px-3 md:px-4 py-2 bg-primary-blue text-white rounded-lg text-sm md:text-base font-medium hover:bg-primary-blue-dark transition-colors"
             >
               {isLastStep ? 'Finalizar' : 'Próximo'}
             </button>
