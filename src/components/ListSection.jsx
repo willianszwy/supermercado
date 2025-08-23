@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import ListItem from './ListItem'
 
-function ListSection({ title, items, onUpdateStatus, statusType, isEmpty = false }) {
+function ListSection({ title, items, onUpdateStatus, statusType, isEmpty = false, dataTour }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   
   // Só permite colapsar as seções "Comprados" e "Em Falta"
   const canCollapse = statusType === 'completed' || statusType === 'missing'
   
   return (
-    <div className="list-section">
+    <div className="list-section" data-tour={dataTour}>
       <div 
         className={`mb-3 flex items-center justify-between ${canCollapse ? 'cursor-pointer' : ''}`}
         onClick={canCollapse ? () => setIsCollapsed(!isCollapsed) : undefined}

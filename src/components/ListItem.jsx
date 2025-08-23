@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import RemoveIcon from './RemoveIcon'
 
 function ListItem({ item, onUpdateStatus, statusType }) {
   const [isDragging, setIsDragging] = useState(false)
@@ -118,7 +119,7 @@ function ListItem({ item, onUpdateStatus, statusType }) {
               className="w-6 h-6 rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600 flex items-center justify-center text-sm transition-colors"
               title="Apagar item"
             >
-              ×
+              <RemoveIcon className="w-3 h-3" />
             </button>
           )}
         </div>

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import ShoppingList from './components/ShoppingList'
 import NewListView from './components/NewListView'
+import HistoryView from './components/HistoryView'
+import Tour from './components/Tour'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { normalizeProductText } from './utils/textUtils'
 
@@ -8,6 +10,19 @@ function App() {
   const [currentView, setCurrentView] = useState('main')
   const [currentList, setCurrentList] = useLocalStorage('shoppingList', [])
   const [allProducts, setAllProducts] = useLocalStorage('allProducts', [])
+  const [cartHistory, setCartHistory] = useLocalStorage('cartHistory', [])
+  const [showTour, setShowTour] = useState(false)
+  const [hasSeenTour, setHasSeenTour] = useLocalStorage('hasSeenTour', false)
+
+  // Mostrar tour automaticamente na primeira visita
+  useEffect(() => {
+    if (!hasSeenTour && currentView === 'main') {
+      const timer = setTimeout(() => {
+        setShowTour(true)
+      }, 1000) // Delay de 1 segundo para carregar a interface
+      return () => clearTimeout(timer)
+    }
+  }, [hasSeenTour, currentView])
 
   const addProduct = (name, quantity) => {
     const normalizedName = normalizeProductText(name)
@@ -92,6 +107,44 @@ function App() {
     setCurrentList([])
   }
 
+  const handleShowTour = () => {
+    setShowTour(true)
+  }
+
+  const handleCloseTour = () => {
+    setShowTour(false)
+    setHasSeenTour(true)
+  }
+
+  const finishCart = () => {
+    if (currentList.length === 0) return
+
+    const finishedCart = {
+      id: Date.now() + Math.random(),
+      items: [...currentList],
+      finishedAt: new Date().toISOString(),
+      totalItems: currentList.length,
+      completedItems: currentList.filter(item => item.status === 'completed').length,
+      missingItems: currentList.filter(item => item.status === 'missing').length
+    }
+
+    setCartHistory(prev => [finishedCart, ...prev])
+    setCurrentList([])
+  }
+
+  const restoreCart = (cart) => {
+    // Restaura o carrinho como uma nova lista
+    const restoredItems = cart.items.map(item => ({
+      ...item,
+      id: Date.now() + Math.random(), // Novo ID
+      status: 'pending', // Reset status
+      addedAt: new Date().toISOString()
+    }))
+    
+    setCurrentList(restoredItems)
+    setCurrentView('main')
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-md mx-auto px-5">
@@ -102,15 +155,30 @@ function App() {
             onUpdateStatus={updateProductStatus}
             onNewList={() => setCurrentView('newList')}
             onClearList={clearList}
+            onShowTour={handleShowTour}
+            onFinishCart={finishCart}
+            onShowHistory={() => setCurrentView('history')}
           />
-        ) : (
+        ) : currentView === 'newList' ? (
           <NewListView
             allProducts={allProducts}
             onCreateList={createNewList}
             onBack={() => setCurrentView('main')}
             onRemoveProduct={removeProduct}
           />
-        )}
+        ) : currentView === 'history' ? (
+          <HistoryView
+            cartHistory={cartHistory}
+            onBack={() => setCurrentView('main')}
+            onRestoreCart={restoreCart}
+          />
+        ) : null}
+        
+        {/* Tour Guide */}
+        <Tour 
+          isOpen={showTour} 
+          onClose={handleCloseTour} 
+        />
       </div>
     </div>
   )

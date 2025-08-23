@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { normalizeProductText } from '../utils/textUtils'
+import MicrophoneIcon from './MicrophoneIcon'
+import PlusIcon from './PlusIcon'
+import RemoveIcon from './RemoveIcon'
 
 function FloatingAddButton({ onAddProduct }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -23,8 +26,9 @@ function FloatingAddButton({ onAddProduct }) {
       <button
         onClick={openModal}
         className="fixed bottom-6 right-6 w-16 h-16 bg-primary-green text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center text-2xl font-bold z-50 hover:bg-primary-green-dark"
+        data-tour="add-button"
       >
-        <span className="block leading-none">+</span>
+        <PlusIcon className="w-8 h-8" />
       </button>
 
       {/* Modal */}
@@ -105,7 +109,7 @@ function AddProductModal({ onAddProduct, onClose }) {
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
           >
-            <span className="text-gray-500 text-xl leading-none">×</span>
+            <RemoveIcon className="w-4 h-4 text-gray-500" />
           </button>
         </div>
 
@@ -135,7 +139,7 @@ function AddProductModal({ onAddProduct, onClose }) {
                     : 'border-primary-blue bg-transparent text-primary-blue hover:bg-primary-blue hover:text-white'
                 }`}
               >
-                🎤
+                <MicrophoneIcon className="w-5 h-5" />
               </button>
             </div>
             {isListening && (
@@ -166,7 +170,7 @@ function AddProductModal({ onAddProduct, onClose }) {
                 onClick={incrementQuantity}
                 className="w-10 h-10 rounded-full bg-primary-green text-white flex items-center justify-center text-xl font-bold hover:bg-primary-green-dark transition-colors"
               >
-                +
+                <PlusIcon className="w-5 h-5" />
               </button>
             </div>
           </div>

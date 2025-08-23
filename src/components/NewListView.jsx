@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import RemoveIcon from './RemoveIcon'
 
 function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
   const [selectedProducts, setSelectedProducts] = useState(new Map())
@@ -96,10 +97,10 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
                           e.stopPropagation()
                           toggleProduct(product.name)
                         }}
-                        className="w-6 h-6 rounded bg-primary-red text-white text-sm font-bold hover:bg-primary-red-dark"
+                        className="w-6 h-6 rounded bg-primary-red text-white text-sm font-bold hover:bg-primary-red-dark flex items-center justify-center"
                         title="Remover da seleção"
                       >
-                        ×
+                        <RemoveIcon className="w-3 h-3" />
                       </button>
                     </>
                   ) : (
