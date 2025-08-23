@@ -39,11 +39,15 @@ function App() {
   }
 
   const updateProductStatus = (id, status) => {
-    setCurrentList(prev => 
-      prev.map(product => 
-        product.id === id ? { ...product, status } : product
+    if (status === 'delete') {
+      setCurrentList(prev => prev.filter(product => product.id !== id))
+    } else {
+      setCurrentList(prev => 
+        prev.map(product => 
+          product.id === id ? { ...product, status } : product
+        )
       )
-    )
+    }
   }
 
   const createNewList = (selectedProducts) => {
@@ -75,6 +79,14 @@ function App() {
     setCurrentView('main')
   }
 
+  const removeProduct = (productName) => {
+    setAllProducts(prev => prev.filter(product => product.name !== productName))
+  }
+
+  const clearList = () => {
+    setCurrentList([])
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-md mx-auto px-5">
@@ -84,12 +96,14 @@ function App() {
             onAddProduct={addProduct}
             onUpdateStatus={updateProductStatus}
             onNewList={() => setCurrentView('newList')}
+            onClearList={clearList}
           />
         ) : (
           <NewListView
             allProducts={allProducts}
             onCreateList={createNewList}
             onBack={() => setCurrentView('main')}
+            onRemoveProduct={removeProduct}
           />
         )}
       </div>

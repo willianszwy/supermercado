@@ -1,11 +1,19 @@
 import { useState } from 'react'
 import ListSection from './ListSection'
 import FloatingAddButton from './FloatingAddButton'
+import ConfirmDialog from './ConfirmDialog'
 
-function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList }) {
+function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, onClearList }) {
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  
   const pendingItems = currentList.filter(item => item.status === 'pending')
   const completedItems = currentList.filter(item => item.status === 'completed')
   const missingItems = currentList.filter(item => item.status === 'missing')
+
+  const handleClearList = () => {
+    onClearList()
+    setShowConfirmDialog(false)
+  }
 
   return (
     <>
@@ -41,9 +49,31 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList }) 
             statusType="missing"
           />
         </div>
+
+        {currentList.length > 0 && (
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <button
+              onClick={() => setShowConfirmDialog(true)}
+              className="w-full py-3 px-4 bg-red-50 border-2 border-red-200 text-red-600 rounded-lg font-medium hover:bg-red-100 hover:border-red-300 transition-colors flex items-center justify-center gap-2"
+            >
+              <span>🗑️</span>
+              Limpar Lista
+            </button>
+          </div>
+        )}
       </main>
 
       <FloatingAddButton onAddProduct={onAddProduct} />
+
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        title="Limpar Lista"
+        message="Tem certeza que deseja limpar toda a lista? Esta ação removerá todos os itens e não pode ser desfeita."
+        onConfirm={handleClearList}
+        onCancel={() => setShowConfirmDialog(false)}
+        confirmText="Sim, Limpar"
+        cancelText="Cancelar"
+      />
     </>
   )
 }

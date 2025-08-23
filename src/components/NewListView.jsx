@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-function NewListView({ allProducts, onCreateList, onBack }) {
+function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
   const [selectedProducts, setSelectedProducts] = useState(new Map())
 
   const sortedProducts = [...allProducts].sort((a, b) => 
@@ -34,6 +34,16 @@ function NewListView({ allProducts, onCreateList, onBack }) {
     onCreateList(productsArray)
   }
 
+  const removeProduct = (productName) => {
+    onRemoveProduct(productName)
+    // Remove from selected products if it was selected
+    setSelectedProducts(prev => {
+      const newMap = new Map(prev)
+      newMap.delete(productName)
+      return newMap
+    })
+  }
+
   return (
     <>
       <header className="py-5 flex items-center gap-5 mb-5 border-b-2 border-primary-blue">
@@ -65,32 +75,46 @@ function NewListView({ allProducts, onCreateList, onBack }) {
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <div className="font-semibold">{product.name}</div>
-                  <div className="text-gray-500 text-sm bg-gray-100 px-2 py-1 rounded">
-                    Última: {product.lastQuantity}
+                  <div className="text-white text-sm bg-slate-500 px-2 py-1 rounded-full font-semibold min-w-6 text-center shadow-sm">
+                    {product.lastQuantity}
                   </div>
                 </div>
                 
-                {selectedProducts.has(product.name) && (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="1"
-                      value={selectedProducts.get(product.name).quantity}
-                      onChange={(e) => updateQuantity(product.name, parseInt(e.target.value) || 1)}
-                      onClick={(e) => e.stopPropagation()}
-                      className="w-16 px-2 py-1 border border-gray-300 rounded bg-white text-black text-center text-sm"
-                    />
+                <div className="flex items-center gap-2">
+                  {selectedProducts.has(product.name) ? (
+                    <>
+                      <input
+                        type="number"
+                        min="1"
+                        value={selectedProducts.get(product.name).quantity}
+                        onChange={(e) => updateQuantity(product.name, parseInt(e.target.value) || 1)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-16 px-2 py-1 border border-gray-300 rounded bg-white text-black text-center text-sm"
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleProduct(product.name)
+                        }}
+                        className="w-6 h-6 rounded bg-primary-red text-white text-sm font-bold hover:bg-primary-red-dark"
+                        title="Remover da seleção"
+                      >
+                        ×
+                      </button>
+                    </>
+                  ) : (
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        toggleProduct(product.name)
+                        removeProduct(product.name)
                       }}
-                      className="w-6 h-6 rounded bg-primary-red text-white text-sm font-bold hover:bg-primary-red-dark"
+                      className="w-6 h-6 rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600 flex items-center justify-center text-sm transition-colors"
+                      title="Remover produto permanentemente"
                     >
-                      ×
+                      🗑️
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           ))}

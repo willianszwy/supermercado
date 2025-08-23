@@ -16,7 +16,7 @@ function ListSection({ title, items, onUpdateStatus, statusType, isEmpty = false
             Arraste itens para direita (✓) ou esquerda (✗)
           </div>
         ) : items.length === 0 ? null : (
-          <ul className="list-none space-y-0">
+          <ul className="list-none">
             {items.map(item => (
               <ListItem
                 key={item.id}

@@ -105,8 +105,22 @@ function ListItem({ item, onUpdateStatus, statusType }) {
     >
       <div className="flex justify-between items-center">
         <div className="item-name font-semibold text-base">{item.name}</div>
-        <div className="item-quantity text-gray-500 text-sm bg-gray-100 px-2 py-1 rounded">
-          Qtd: {item.quantity}
+        <div className="flex items-center gap-2">
+          <div className="item-quantity text-white text-sm bg-slate-500 px-2 py-1 rounded-full font-semibold min-w-6 text-center shadow-sm">
+            {item.quantity}
+          </div>
+          {item.status === 'pending' && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onUpdateStatus(item.id, 'delete')
+              }}
+              className="w-6 h-6 rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600 flex items-center justify-center text-sm transition-colors"
+              title="Apagar item"
+            >
+              ×
+            </button>
+          )}
         </div>
       </div>
     </li>
