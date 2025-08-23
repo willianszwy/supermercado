@@ -2,7 +2,7 @@ import { useState } from 'react'
 import RemoveIcon from './RemoveIcon'
 import TrashIcon from './TrashIcon'
 import PlusIcon from './PlusIcon'
-import MicrophoneIcon from './MicrophoneIcon'
+import SimplePlusIcon from './SimplePlusIcon'
 import ImportIcon from './ImportIcon'
 import { normalizeProductText } from '../utils/textUtils'
 
@@ -92,7 +92,7 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
         </div>
         <button
           onClick={() => setShowBulkImportModal(true)}
-          className="px-4 py-2 bg-purple-50 border-2 border-purple-200 text-purple-600 rounded-lg font-medium hover:bg-purple-100 hover:border-purple-300 transition-colors text-sm flex items-center gap-2"
+          className="btn-secondary flex items-center gap-2"
           title="Importar lista em massa"
         >
           <ImportIcon className="w-4 h-4" />
@@ -217,7 +217,6 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
 function AddProductModal({ onAddProduct, onClose }) {
   const [productName, setProductName] = useState('')
   const [quantity, setQuantity] = useState(1)
-  const [isListening, setIsListening] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -233,40 +232,6 @@ function AddProductModal({ onAddProduct, onClose }) {
 
   const decrementQuantity = () => {
     setQuantity(prev => Math.max(1, prev - 1))
-  }
-
-  const startVoiceInput = () => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert('Seu navegador não suporta reconhecimento de voz')
-      return
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    const recognition = new SpeechRecognition()
-
-    recognition.lang = 'pt-BR'
-    recognition.continuous = false
-    recognition.interimResults = false
-
-    setIsListening(true)
-
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript
-      const normalizedTranscript = normalizeProductText(transcript)
-      setProductName(normalizedTranscript)
-      setIsListening(false)
-    }
-
-    recognition.onerror = () => {
-      setIsListening(false)
-      alert('Erro no reconhecimento de voz')
-    }
-
-    recognition.onend = () => {
-      setIsListening(false)
-    }
-
-    recognition.start()
   }
 
   return (
@@ -292,33 +257,14 @@ function AddProductModal({ onAddProduct, onClose }) {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Nome do produto
             </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={productName}
-                onChange={(e) => setProductName(e.target.value)}
-                placeholder="Digite o nome..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue"
-                autoFocus
-              />
-              <button
-                type="button"
-                onClick={startVoiceInput}
-                disabled={isListening}
-                className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center transition-all ${
-                  isListening 
-                    ? 'border-red-400 bg-red-50 text-red-600' 
-                    : 'border-primary-blue bg-transparent text-primary-blue hover:bg-primary-blue hover:text-white'
-                }`}
-              >
-                <MicrophoneIcon className="w-5 h-5" />
-              </button>
-            </div>
-            {isListening && (
-              <p className="text-sm text-red-600 mt-1 animate-pulse">
-                Ouvindo... fale agora
-              </p>
-            )}
+            <input
+              type="text"
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+              placeholder="Digite o nome..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue"
+              autoFocus
+            />
           </div>
 
           {/* Quantity */}
@@ -340,9 +286,9 @@ function AddProductModal({ onAddProduct, onClose }) {
               <button
                 type="button"
                 onClick={incrementQuantity}
-                className="w-10 h-10 rounded-full bg-primary-blue text-white flex items-center justify-center text-xl font-bold hover:bg-primary-blue-dark transition-colors"
+                className="w-10 h-10 rounded-full bg-primary-green text-white flex items-center justify-center text-xl font-bold hover:bg-primary-green-dark transition-colors"
               >
-                <PlusIcon className="w-5 h-5" />
+                <SimplePlusIcon className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -361,7 +307,7 @@ function AddProductModal({ onAddProduct, onClose }) {
               disabled={!normalizeProductText(productName)}
               className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
                 normalizeProductText(productName)
-                  ? 'bg-primary-blue text-white hover:bg-primary-blue-dark'
+                  ? 'bg-primary-green text-white hover:bg-primary-green-dark'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
@@ -474,7 +420,7 @@ Açúcar
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              ✍️ Digitar Texto
+              Digitar Texto
             </button>
             <button
               onClick={() => setImportMode('csv')}
@@ -484,7 +430,7 @@ Açúcar
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              📁 Carregar CSV
+              Carregar CSV
             </button>
           </div>
 
@@ -517,7 +463,7 @@ Açúcar
 
           {/* Format Examples */}
           <div className="bg-gray-50 rounded-lg p-3">
-            <h4 className="text-sm font-medium text-gray-800 mb-2">💡 Formatos aceitos:</h4>
+            <h4 className="text-sm font-medium text-gray-800 mb-2">Formatos aceitos:</h4>
             
             <div className="space-y-3 text-xs">
               <div>
@@ -540,7 +486,7 @@ Açúcar
           {importText.trim() && (
             <div>
               <h4 className="text-sm font-medium text-gray-800 mb-2">
-                📋 Produtos encontrados ({parseCsvText(importText).length}):
+                Produtos encontrados ({parseCsvText(importText).length}):
               </h4>
               <div className="bg-blue-50 rounded-lg p-3 max-h-32 overflow-y-auto">
                 {parseCsvText(importText).map((product, index) => (
@@ -572,7 +518,7 @@ Açúcar
             disabled={!importText.trim() || parseCsvText(importText).length === 0}
             className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
               importText.trim() && parseCsvText(importText).length > 0
-                ? 'bg-primary-blue text-white hover:bg-primary-blue-dark'
+                ? 'bg-primary-green text-white hover:bg-primary-green-dark'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >

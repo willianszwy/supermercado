@@ -13,6 +13,8 @@ function App() {
   const [cartHistory, setCartHistory] = useLocalStorage('cartHistory', [])
   const [showTour, setShowTour] = useState(false)
   const [hasSeenTour, setHasSeenTour] = useLocalStorage('hasSeenTour', false)
+  const [showGestureHints, setShowGestureHints] = useLocalStorage('showGestureHints', true)
+  const [gestureInteractionCount, setGestureInteractionCount] = useLocalStorage('gestureInteractionCount', 0)
 
   // Mostrar tour automaticamente na primeira visita
   useEffect(() => {
@@ -24,7 +26,7 @@ function App() {
     }
   }, [hasSeenTour, currentView])
 
-  const addProduct = (name, quantity) => {
+  const addProduct = (name, quantity, category = 'geral') => {
     const normalizedName = normalizeProductText(name)
     
     if (!normalizedName) return // Não adiciona se o nome estiver vazio após normalização
@@ -33,6 +35,7 @@ function App() {
       id: Date.now() + Math.random(),
       name: normalizedName,
       quantity,
+      category,
       status: 'pending',
       addedAt: new Date().toISOString()
     }
@@ -45,13 +48,14 @@ function App() {
       if (!existing) {
         return [...prev, {
           name: normalizedName,
+          category,
           lastQuantity: quantity,
           lastUsed: new Date().toISOString()
         }]
       } else {
         return prev.map(p => 
           p.name.toLowerCase() === normalizedName.toLowerCase()
-            ? { ...p, lastQuantity: quantity, lastUsed: new Date().toISOString() }
+            ? { ...p, category, lastQuantity: quantity, lastUsed: new Date().toISOString() }
             : p
         )
       }
@@ -67,14 +71,27 @@ function App() {
           product.id === id ? { ...product, status } : product
         )
       )
+      
+      // Incrementar contador de interações com gestos
+      if (status === 'completed' || status === 'missing') {
+        setGestureInteractionCount(prev => {
+          const newCount = prev + 1
+          // Esconder hints após 5 interações bem-sucedidas
+          if (newCount >= 5) {
+            setShowGestureHints(false)
+          }
+          return newCount
+        })
+      }
     }
   }
 
   const createNewList = (selectedProducts) => {
-    const newList = selectedProducts.map(({ name, quantity }) => ({
+    const newList = selectedProducts.map(({ name, quantity, category }) => ({
       id: Date.now() + Math.random(),
       name,
       quantity,
+      category: category || 'geral',
       status: 'pending',
       addedAt: new Date().toISOString()
     }))
@@ -158,6 +175,7 @@ function App() {
             onShowTour={handleShowTour}
             onFinishCart={finishCart}
             onShowHistory={() => setCurrentView('history')}
+            showGestureHints={showGestureHints}
           />
         ) : currentView === 'newList' ? (
           <NewListView
