@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { normalizeProductText } from '../utils/textUtils'
 
 function FloatingAddButton({ onAddProduct }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -44,8 +45,9 @@ function AddProductModal({ onAddProduct, onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (productName.trim()) {
-      onAddProduct(productName.trim(), quantity)
+    const normalizedName = normalizeProductText(productName)
+    if (normalizedName) {
+      onAddProduct(normalizedName, quantity)
     }
   }
 
@@ -74,7 +76,8 @@ function AddProductModal({ onAddProduct, onClose }) {
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript
-      setProductName(transcript)
+      const normalizedTranscript = normalizeProductText(transcript)
+      setProductName(normalizedTranscript)
       setIsListening(false)
     }
 
@@ -179,9 +182,9 @@ function AddProductModal({ onAddProduct, onClose }) {
             </button>
             <button
               type="submit"
-              disabled={!productName.trim()}
+              disabled={!normalizeProductText(productName)}
               className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
-                productName.trim()
+                normalizeProductText(productName)
                   ? 'bg-primary-green text-white hover:bg-primary-green-dark'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}

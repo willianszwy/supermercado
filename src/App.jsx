@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import ShoppingList from './components/ShoppingList'
 import NewListView from './components/NewListView'
 import { useLocalStorage } from './hooks/useLocalStorage'
+import { normalizeProductText } from './utils/textUtils'
 
 function App() {
   const [currentView, setCurrentView] = useState('main')
@@ -9,9 +10,13 @@ function App() {
   const [allProducts, setAllProducts] = useLocalStorage('allProducts', [])
 
   const addProduct = (name, quantity) => {
+    const normalizedName = normalizeProductText(name)
+    
+    if (!normalizedName) return // Não adiciona se o nome estiver vazio após normalização
+    
     const product = {
       id: Date.now() + Math.random(),
-      name,
+      name: normalizedName,
       quantity,
       status: 'pending',
       addedAt: new Date().toISOString()
@@ -21,16 +26,16 @@ function App() {
 
     // Add to all products if not exists
     setAllProducts(prev => {
-      const existing = prev.find(p => p.name.toLowerCase() === name.toLowerCase())
+      const existing = prev.find(p => p.name.toLowerCase() === normalizedName.toLowerCase())
       if (!existing) {
         return [...prev, {
-          name,
+          name: normalizedName,
           lastQuantity: quantity,
           lastUsed: new Date().toISOString()
         }]
       } else {
         return prev.map(p => 
-          p.name.toLowerCase() === name.toLowerCase()
+          p.name.toLowerCase() === normalizedName.toLowerCase()
             ? { ...p, lastQuantity: quantity, lastUsed: new Date().toISOString() }
             : p
         )
