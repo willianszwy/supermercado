@@ -2,33 +2,25 @@ import { useState } from 'react'
 import ListSection from './ListSection'
 import FloatingAddButton from './FloatingAddButton'
 import ConfirmDialog from './ConfirmDialog'
+import CategoryHeader from './CategoryHeader'
+import TabNavigation from './TabNavigation'
 import HistoryIcon from './HistoryIcon'
 import CheckmarkIcon from './CheckmarkIcon'
 import TrashIcon from './TrashIcon'
 import HelpIcon from './HelpIcon'
-import { getCategoryById, getCategoriesList, getCategoryColor } from '../utils/categories'
+import { getCategoryById, getCategoriesWithItems, getCategoryColor } from '../utils/categories'
 
 function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, onClearList, onShowTour, onFinishCart, onShowHistory, showGestureHints }) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [collapsedCategories, setCollapsedCategories] = useState(new Set())
+  const [activeTab, setActiveTab] = useState('pending')
   
   const pendingItems = currentList.filter(item => item.status === 'pending')
   const completedItems = currentList.filter(item => item.status === 'completed')
   const missingItems = currentList.filter(item => item.status === 'missing')
 
-  // Group pending items by category
-  const groupItemsByCategory = (items) => {
-    const grouped = items.reduce((acc, item) => {
-      const category = item.category || 'geral'
-      if (!acc[category]) {
-        acc[category] = []
-      }
-      acc[category].push(item)
-      return acc
-    }, {})
-    
-    return grouped
-  }
+  // Usar a nova função que já ordena por rota de compras
+  const categoriesWithPendingItems = getCategoriesWithItems(pendingItems)
 
   const toggleCategoryCollapse = (categoryId) => {
     setCollapsedCategories(prev => {
@@ -76,72 +68,119 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
         </div>
       </header>
 
-      <main>
-        <div className="flex flex-col gap-5">
-          {/* Pending Items by Category */}
-          {pendingItems.length > 0 ? (
-            <div className="space-y-4" data-tour="pending-section">
-              {Object.entries(groupItemsByCategory(pendingItems)).map(([categoryId, items]) => {
-                const category = getCategoryById(categoryId)
-                const isCollapsed = collapsedCategories.has(categoryId)
-                
-                return (
-                  <div key={categoryId} className="bg-white rounded-lg border border-gray-200 shadow-sm">
-                    <button
-                      onClick={() => toggleCategoryCollapse(categoryId)}
-                      className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors rounded-t-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-4 h-4 rounded-full ${getCategoryColor(categoryId)}`}></div>
-                        <h3 className="text-lg font-semibold text-gray-800">
-                          {category.name}
-                        </h3>
-                        <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full font-medium">
-                          {items.length}
-                        </span>
-                      </div>
-                      <span className="text-gray-400">
-                        {isCollapsed ? '▼' : '▲'}
-                      </span>
-                    </button>
-                    
-                    {!isCollapsed && (
-                      <div className="px-4 pb-4">
-                        <ListSection
-                          items={items}
-                          onUpdateStatus={onUpdateStatus}
-                          hideTitle={true}
-                          showGestureHints={showGestureHints}
-                        />
-                      </div>
-                    )}
+      {/* Navegação por abas */}
+      <TabNavigation
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        pendingCount={pendingItems.length}
+        completedCount={completedItems.length}
+        missingCount={missingItems.length}
+      />
+
+      <main className="px-4">
+        {/* Conteúdo baseado na aba ativa */}
+        {activeTab === 'pending' && (
+          <div className="tab-content">
+            {/* Header de rota sugerida */}
+            {pendingItems.length > 0 && (
+              <div className="route-suggestion mb-6 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
                   </div>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-gray-500" data-tour="pending-section">
-              <p className="text-lg">Sua lista está vazia</p>
-              <p className="text-sm mt-1">Clique no botão + para adicionar produtos</p>
-            </div>
-          )}
+                  <h2 className="text-lg sm:text-xl font-bold text-blue-900">Sua rota de compras</h2>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm sm:text-base text-blue-700">
+                  <span className="flex-shrink-0">Sugerimos começar pelo:</span>
+                  <div className="flex flex-wrap gap-1">
+                    {categoriesWithPendingItems.slice(0, 3).map((categoryWithItems, index) => (
+                      <span key={categoryWithItems.id} className="font-semibold">
+                        {categoryWithItems.name}
+                        {index < Math.min(categoriesWithPendingItems.length - 1, 2) && ' → '}
+                      </span>
+                    ))}
+                    {categoriesWithPendingItems.length > 3 && <span className="text-blue-600">...</span>}
+                  </div>
+                </div>
+              </div>
+            )}
 
-          <ListSection
-            title="Comprados"
-            items={completedItems}
-            onUpdateStatus={onUpdateStatus}
-            statusType="completed"
-            dataTour="completed-section"
-          />
+            {/* Lista de Pendentes por Categoria */}
+            {pendingItems.length > 0 ? (
+              <div className="space-y-4" data-tour="pending-section">
+                {categoriesWithPendingItems.map((categoryWithItems) => {
+                  const isCollapsed = collapsedCategories.has(categoryWithItems.id)
+                  const completedInCategory = currentList.filter(item => 
+                    (item.category || 'geral') === categoryWithItems.id && item.status === 'completed'
+                  ).length
+                  
+                  return (
+                    <div key={categoryWithItems.id} className="category-card bg-white rounded-xl border-2 border-gray-200 shadow-sm overflow-hidden">
+                      <CategoryHeader 
+                        category={categoryWithItems}
+                        itemCount={categoryWithItems.items.length}
+                        completedCount={completedInCategory}
+                        isCollapsed={isCollapsed}
+                        onToggle={() => toggleCategoryCollapse(categoryWithItems.id)}
+                      />
+                      
+                      {!isCollapsed && (
+                        <div className="px-6 pb-6">
+                          <ListSection
+                            items={categoryWithItems.items}
+                            onUpdateStatus={onUpdateStatus}
+                            hideTitle={true}
+                            showGestureHints={showGestureHints}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-16 text-gray-500" data-tour="pending-section">
+                <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                  <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <p className="text-xl font-semibold text-gray-700 mb-2">Sua lista está vazia</p>
+                <p className="text-sm text-gray-500">Clique no botão + para adicionar produtos e começar suas compras</p>
+              </div>
+            )}
+          </div>
+        )}
 
-          <ListSection
-            title="Em Falta"
-            items={missingItems}
-            onUpdateStatus={onUpdateStatus}
-            statusType="missing"
-            dataTour="missing-section"
-          />
-        </div>
+        {/* Aba Comprados */}
+        {activeTab === 'completed' && (
+          <div className="tab-content py-4">
+            <ListSection
+              title="Itens Comprados"
+              items={completedItems}
+              onUpdateStatus={onUpdateStatus}
+              statusType="completed"
+              dataTour="completed-section"
+              hideTitle={false}
+            />
+          </div>
+        )}
+
+        {/* Aba Em Falta */}
+        {activeTab === 'missing' && (
+          <div className="tab-content py-4">
+            <ListSection
+              title="Itens em Falta"
+              items={missingItems}
+              onUpdateStatus={onUpdateStatus}
+              statusType="missing"
+              dataTour="missing-section"
+              hideTitle={false}
+            />
+          </div>
+        )}
 
         {currentList.length > 0 && (
           <div className="mt-8 pt-6 border-t border-gray-200 space-y-3">

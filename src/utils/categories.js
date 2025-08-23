@@ -1,58 +1,104 @@
+import AcougueIcon from '../components/icons/AcougueIcon'
+import HortifrutiIcon from '../components/icons/HortifrutiIcon'
+import LaticiniosIcon from '../components/icons/LaticiniosIcon'
+import PadariaIcon from '../components/icons/PadariaIcon'
+import LimpezaIcon from '../components/icons/LimpezaIcon'
+import HigieneIcon from '../components/icons/HigieneIcon'
+import BebidasIcon from '../components/icons/BebidasIcon'
+import CongeladosIcon from '../components/icons/CongeladosIcon'
+import MerceariaIcon from '../components/icons/MerceariaIcon'
+import BomboneriaIcon from '../components/icons/BomboneriaIcon'
+import GeralIcon from '../components/icons/GeralIcon'
+
+// Ordenação baseada no fluxo típico de supermercado
 export const CATEGORIES = {
-  geral: {
-    id: 'geral',
-    name: 'Geral',
-    color: 'gray'
+  hortifruti: {
+    id: 'hortifruti',
+    name: 'Hortifrúti',
+    color: 'green',
+    icon: HortifrutiIcon,
+    order: 1,
+    description: 'Frutas, verduras e legumes'
   },
   acougue: {
     id: 'acougue',
     name: 'Açougue',
-    color: 'red'
-  },
-  padaria: {
-    id: 'padaria',
-    name: 'Padaria',
-    color: 'orange'
-  },
-  hortifruti: {
-    id: 'hortifruti',
-    name: 'Hortifrúti',
-    color: 'green'
+    color: 'red',
+    icon: AcougueIcon,
+    order: 2,
+    description: 'Carnes, aves e embutidos'
   },
   laticinios: {
     id: 'laticinios',
     name: 'Laticínios',
-    color: 'blue'
-  },
-  limpeza: {
-    id: 'limpeza',
-    name: 'Limpeza',
-    color: 'purple'
-  },
-  higiene: {
-    id: 'higiene',
-    name: 'Higiene',
-    color: 'teal'
-  },
-  bombonieria: {
-    id: 'bombonieria',
-    name: 'Bombonieria',
-    color: 'pink'
-  },
-  mercearia: {
-    id: 'mercearia',
-    name: 'Mercearia',
-    color: 'amber'
-  },
-  bebidas: {
-    id: 'bebidas',
-    name: 'Bebidas',
-    color: 'cyan'
+    color: 'blue',
+    icon: LaticiniosIcon,
+    order: 3,
+    description: 'Leites, queijos e iogurtes'
   },
   congelados: {
     id: 'congelados',
     name: 'Congelados',
-    color: 'indigo'
+    color: 'indigo',
+    icon: CongeladosIcon,
+    order: 4,
+    description: 'Produtos congelados'
+  },
+  padaria: {
+    id: 'padaria',
+    name: 'Padaria',
+    color: 'orange',
+    icon: PadariaIcon,
+    order: 5,
+    description: 'Pães, bolos e doces'
+  },
+  mercearia: {
+    id: 'mercearia',
+    name: 'Mercearia',
+    color: 'amber',
+    icon: MerceariaIcon,
+    order: 6,
+    description: 'Enlatados, grãos e temperos'
+  },
+  bebidas: {
+    id: 'bebidas',
+    name: 'Bebidas',
+    color: 'cyan',
+    icon: BebidasIcon,
+    order: 7,
+    description: 'Refrigerantes, sucos e águas'
+  },
+  bombonieria: {
+    id: 'bombonieria',
+    name: 'Bombonieria',
+    color: 'pink',
+    icon: BomboneriaIcon,
+    order: 8,
+    description: 'Doces, chocolates e guloseimas'
+  },
+  limpeza: {
+    id: 'limpeza',
+    name: 'Limpeza',
+    color: 'purple',
+    icon: LimpezaIcon,
+    order: 9,
+    description: 'Produtos de limpeza doméstica'
+  },
+  higiene: {
+    id: 'higiene',
+    name: 'Higiene',
+    color: 'teal',
+    icon: HigieneIcon,
+    order: 10,
+    description: 'Higiene pessoal e beleza'
+  },
+  geral: {
+    id: 'geral',
+    name: 'Geral',
+    color: 'gray',
+    icon: GeralIcon,
+    order: 11,
+    description: 'Outros produtos'
   }
 }
 
@@ -61,7 +107,25 @@ export const getCategoryById = (categoryId) => {
 }
 
 export const getCategoriesList = () => {
-  return Object.values(CATEGORIES)
+  return Object.values(CATEGORIES).sort((a, b) => a.order - b.order)
+}
+
+export const getCategoriesWithItems = (items) => {
+  const categoriesWithItems = {}
+  
+  items.forEach(item => {
+    const categoryId = item.category || 'geral'
+    if (!categoriesWithItems[categoryId]) {
+      categoriesWithItems[categoryId] = {
+        ...getCategoryById(categoryId),
+        items: []
+      }
+    }
+    categoriesWithItems[categoryId].items.push(item)
+  })
+  
+  // Ordenar por rota de compras
+  return Object.values(categoriesWithItems).sort((a, b) => a.order - b.order)
 }
 
 export const getCategoryColor = (categoryId) => {
