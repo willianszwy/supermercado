@@ -14,7 +14,12 @@
       "Bash(npm run build:*)",
       "Bash(npm run dev:*)",
       "Bash(npm run lint)",
-      "Bash(npx vite build:*)"
+      "Bash(npx vite build:*)",
+      "Bash(python:*)",
+      "Bash(cp:*)",
+      "Bash(npm run preview:*)",
+      "Bash(npx serve:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

@@ -6,6 +6,7 @@ import SimplePlusIcon from './SimplePlusIcon'
 import ImportIcon from './ImportIcon'
 import WhatsAppIcon from './icons/WhatsAppIcon'
 import { normalizeProductText } from '../utils/textUtils'
+import { getCategoryById, CATEGORIES } from '../utils/categories'
 
 function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
   const [selectedProducts, setSelectedProducts] = useState(new Map())
@@ -573,19 +574,65 @@ function WhatsAppImportModal({ onImport, onClose }) {
   const parseWhatsAppText = (text) => {
     const lines = text.trim().split('\n').filter(line => line.trim())
     const products = []
+    let currentCategory = 'geral'
+
+    // Mapeamento de nomes de categorias para IDs
+    const categoryMapping = {}
+    Object.values(CATEGORIES).forEach(cat => {
+      categoryMapping[cat.name.toLowerCase()] = cat.id
+      // Adicionar variações comuns
+      if (cat.id === 'hortifruti') {
+        categoryMapping['frutas'] = cat.id
+        categoryMapping['verduras'] = cat.id
+        categoryMapping['legumes'] = cat.id
+        categoryMapping['hortifrutti'] = cat.id
+      }
+      if (cat.id === 'acougue') {
+        categoryMapping['açougue'] = cat.id
+        categoryMapping['carnes'] = cat.id
+        categoryMapping['carne'] = cat.id
+      }
+      if (cat.id === 'laticinios') {
+        categoryMapping['laticínios'] = cat.id
+        categoryMapping['queijos'] = cat.id
+        categoryMapping['leite'] = cat.id
+      }
+    })
 
     for (const line of lines) {
       // Remove prefixos comuns de data/hora do WhatsApp
-      const cleanLine = line.replace(/^\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2}\s+[-–]\s+/, '')
+      let cleanLine = line.replace(/^\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2}\s+[-–]\s+/, '')
         .replace(/^\[\d{1,2}:\d{2}\]\s+/, '')
         .replace(/^.*?:\s+/, '') // Remove "Nome: " do WhatsApp
         .trim()
 
       if (!cleanLine) continue
 
-      // Tenta diferentes formatos
+      // Verificar se é um cabeçalho de categoria (ex: "🔹 *Hortifrúti*" ou "Hortifrúti:")
+      const categoryHeader = cleanLine.match(/^(?:🔹\s*\*?|#+\s*)?([^*\n]+?)(?:\*|\s*:)?\s*$/i)
+      if (categoryHeader) {
+        const possibleCategory = categoryHeader[1].trim().toLowerCase()
+        if (categoryMapping[possibleCategory]) {
+          currentCategory = categoryMapping[possibleCategory]
+          continue
+        }
+      }
+
+      // Verificar se parece com cabeçalho de categoria simples
+      if (cleanLine.length < 20 && !cleanLine.includes(',') && !cleanLine.includes('•') && !cleanLine.match(/\d/)) {
+        const possibleCategory = cleanLine.toLowerCase().replace(/[^\w\s]/g, '').trim()
+        if (categoryMapping[possibleCategory]) {
+          currentCategory = categoryMapping[possibleCategory]
+          continue
+        }
+      }
+
+      // Tenta diferentes formatos de produtos
       let name = null
       let quantity = 1
+
+      // Remove bullet points e formatação
+      cleanLine = cleanLine.replace(/^[-•*]\s*/, '').trim()
 
       // Formato: "quantidade produto" (ex: "2 arroz", "3 kg carne")
       const quantityFirst = cleanLine.match(/^(\d+)\s*(?:kg|g|l|ml|un|unidades?)?\s+(.+)$/i)
@@ -626,9 +673,9 @@ function WhatsAppImportModal({ onImport, onClose }) {
 
       // Limpa e normaliza o nome
       if (name) {
-        name = normalizeProductText(name.replace(/^[-•*]\s*/, '').trim())
-        if (name) {
-          products.push({ name, quantity })
+        name = normalizeProductText(name.trim())
+        if (name && name.length > 1) { // Evita nomes muito pequenos
+          products.push({ name, quantity, category: currentCategory })
         }
       }
     }
@@ -718,10 +765,13 @@ function WhatsAppImportModal({ onImport, onClose }) {
               onChange={(e) => setImportText(e.target.value)}
               placeholder="Cole sua lista aqui... 
 Exemplos aceitos:
-• 2 kg carne
+🔹 *Hortifrúti*
+• Banana, 6
+• Maçã, 4
+
+🔹 *Mercearia*  
 • Arroz, 1
-• Feijão - 2 
-• Açúcar"
+• Feijão - 2"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue h-32 resize-none text-sm"
             />
           </div>
@@ -735,7 +785,14 @@ Exemplos aceitos:
               <div className="bg-blue-50 rounded-lg p-3 max-h-32 overflow-y-auto">
                 {previewProducts.map((product, index) => (
                   <div key={index} className="flex justify-between items-center py-1">
-                    <span className="text-sm text-gray-800">{product.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-800">{product.name}</span>
+                      {product.category !== 'geral' && (
+                        <span className="text-xs bg-gray-200 px-1 py-0.5 rounded text-gray-600">
+                          {getCategoryById(product.category).name}
+                        </span>
+                      )}
+                    </div>
                     <span className="text-xs bg-blue-200 px-2 py-1 rounded text-blue-800">
                       {product.quantity}
                     </span>

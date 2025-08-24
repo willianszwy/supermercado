@@ -8,16 +8,19 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      devOptions: {
+        enabled: true
+      },
+      filename: 'manifest.json',
+      includeAssets: ['favicon.ico', 'favicon/*.png', 'icon-192x192.png', 'icon-512x512.png'],
       manifest: {
         name: 'SwipeCart',
         short_name: 'SwipeCart',
-        description: 'Lista de compras inteligente com gestos - arraste para marcar items',
-        theme_color: '#1f498dff',
+        description: 'Lista de compras inteligente',
+        theme_color: '#1f498d',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/supermercado/',
-        scope: '/supermercado/',
+        start_url: './',
         icons: [
           {
             src: 'icon-192x192.png',
