@@ -50,14 +50,23 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
     const categoriesWithItems = getCategoriesWithItems(currentList)
     
     let listText = '📝 *Lista de Compras - SwipeCart*\n\n'
+    let totalEstimated = 0
     
     categoriesWithItems.forEach(categoryWithItems => {
       listText += `🔹 *${categoryWithItems.name}*\n`
       categoryWithItems.items.forEach(item => {
-        listText += `• ${item.name}, ${item.quantity}\n`
+        const itemTotal = (item.price || 0) * item.quantity
+        totalEstimated += itemTotal
+        const priceText = item.price ? ` - R$ ${item.price.toFixed(2)}` : ''
+        listText += `• ${item.name}, ${item.quantity}${priceText}\n`
       })
       listText += '\n'
     })
+    
+    if (totalEstimated > 0) {
+      listText += `💰 *Estimativa Total: R$ ${totalEstimated.toFixed(2)}*\n`
+      listText += '_* Valores sugeridos para estimativa_\n\n'
+    }
     
     listText += '✨ _Importe esta lista no SwipeCart!_'
     
@@ -211,6 +220,47 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
 
         {currentList.length > 0 && (
           <div className="mt-8 pt-6 border-t border-gray-200 space-y-3">
+            {/* Price Estimation */}
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center gap-2 mb-3">
+                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                </svg>
+                <h3 className="font-semibold text-blue-900">Estimativa de Gastos</h3>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-600">Pendentes:</p>
+                  <p className="font-bold text-blue-900">
+                    R$ {pendingItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Comprados:</p>
+                  <p className="font-bold text-green-700">
+                    R$ {completedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Em Falta:</p>
+                  <p className="font-bold text-red-600">
+                    R$ {missingItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Total Geral:</p>
+                  <p className="font-bold text-lg text-blue-900">
+                    R$ {currentList.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+              
+              <p className="text-xs text-blue-600 mt-2">
+                * Valores sugeridos para estimativa, não representam preços reais
+              </p>
+            </div>
+
             <button
               onClick={onFinishCart}
               className="w-full py-3 px-4 bg-green-50 border-2 border-green-200 text-primary-green rounded-lg font-medium hover:bg-green-100 hover:border-green-300 transition-colors flex items-center justify-center gap-2"

@@ -18,13 +18,13 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
     new Date(b.lastUsed) - new Date(a.lastUsed)
   )
 
-  const toggleProduct = (productName, lastQuantity, category) => {
+  const toggleProduct = (productName, lastQuantity, category, suggestedPrice) => {
     setSelectedProducts(prev => {
       const newMap = new Map(prev)
       if (newMap.has(productName)) {
         newMap.delete(productName)
       } else {
-        newMap.set(productName, { name: productName, quantity: lastQuantity, category })
+        newMap.set(productName, { name: productName, quantity: lastQuantity, category, price: suggestedPrice || 0 })
       }
       return newMap
     })
@@ -144,11 +144,16 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
                   ? 'border-primary-green bg-green-50'
                   : 'border-gray-200 hover:border-primary-blue'
               }`}
-              onClick={() => !selectedProducts.has(product.name) && toggleProduct(product.name, product.lastQuantity, product.category)}
+              onClick={() => !selectedProducts.has(product.name) && toggleProduct(product.name, product.lastQuantity, product.category, product.suggestedPrice)}
             >
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <div className="font-semibold">{product.name}</div>
+                  <div className="flex flex-col">
+                    <div className="font-semibold">{product.name}</div>
+                    {product.suggestedPrice > 0 && (
+                      <div className="text-xs text-gray-600">R$ {product.suggestedPrice.toFixed(2)}</div>
+                    )}
+                  </div>
                   <div className="text-white text-sm bg-slate-500 px-2 py-1 rounded-full font-semibold min-w-6 text-center shadow-sm">
                     {product.lastQuantity}
                   </div>
@@ -367,13 +372,25 @@ function BulkImportModal({ onImport, onClose }) {
     const products = []
 
     for (const line of lines) {
-      // Try CSV format first: "product name, quantity"
+      // Try CSV format with price: "product name, quantity, price"
+      const csvWithPriceMatch = line.match(/^([^,]+),\s*(\d+),\s*([\d.,]+)$/)
+      if (csvWithPriceMatch) {
+        const name = normalizeProductText(csvWithPriceMatch[1].trim())
+        const quantity = parseInt(csvWithPriceMatch[2]) || 1
+        const price = parseFloat(csvWithPriceMatch[3].replace(',', '.')) || 0
+        if (name) {
+          products.push({ name, quantity, price })
+        }
+        continue
+      }
+
+      // Try CSV format: "product name, quantity"
       const csvMatch = line.match(/^([^,]+),\s*(\d+)$/)
       if (csvMatch) {
         const name = normalizeProductText(csvMatch[1].trim())
         const quantity = parseInt(csvMatch[2]) || 1
         if (name) {
-          products.push({ name, quantity })
+          products.push({ name, quantity, price: 0 })
         }
         continue
       }
@@ -384,7 +401,7 @@ function BulkImportModal({ onImport, onClose }) {
         const quantity = parseInt(simpleMatch[1]) || 1
         const name = normalizeProductText(simpleMatch[2].trim())
         if (name) {
-          products.push({ name, quantity })
+          products.push({ name, quantity, price: 0 })
         }
       }
     }
@@ -417,10 +434,10 @@ function BulkImportModal({ onImport, onClose }) {
     reader.readAsText(file)
   }
 
-  const exampleText = `Arroz, 2
-Feijão, 1
-Macarrão, 3
-Açúcar, 1
+  const exampleText = `Arroz, 2, 8.50
+Feijão, 1, 6.80
+Macarrão, 3, 4.20
+Açúcar, 1, 5.90
 Óleo de Soja, 2`
 
   const exampleSimple = `2 Arroz
@@ -504,7 +521,7 @@ Açúcar
             
             <div className="space-y-3 text-xs">
               <div>
-                <p className="font-medium text-gray-700 mb-1">Formato CSV (produto, quantidade):</p>
+                <p className="font-medium text-gray-700 mb-1">Formato CSV (produto, quantidade, preço):</p>
                 <pre className="bg-white p-2 rounded text-gray-600 overflow-x-auto">
 {exampleText}
                 </pre>
@@ -528,7 +545,12 @@ Açúcar
               <div className="bg-blue-50 rounded-lg p-3 max-h-32 overflow-y-auto">
                 {parseCsvText(importText).map((product, index) => (
                   <div key={index} className="flex justify-between items-center py-1">
-                    <span className="text-sm text-gray-800">{product.name}</span>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-800">{product.name}</span>
+                      {product.price > 0 && (
+                        <span className="text-xs text-gray-600">R$ {product.price.toFixed(2)}</span>
+                      )}
+                    </div>
                     <span className="text-xs bg-blue-200 px-2 py-1 rounded text-blue-800">
                       {product.quantity}
                     </span>
@@ -644,6 +666,7 @@ function WhatsAppImportModal({ onImport, onClose }) {
       // Tenta diferentes formatos de produtos
       let name = null
       let quantity = 1
+      let price = 0
 
       // Remove bullet points e formatação
       cleanLine = cleanLine.replace(/^[-•*]\s*/, '').trim()
@@ -660,10 +683,24 @@ function WhatsAppImportModal({ onImport, onClose }) {
         name = quantityFirst[2].trim()
       }
       
-      // Formato: "produto, quantidade" (ex: "arroz, 2")
+      // Formato: "produto, quantidade, preço" (ex: "arroz, 2, 5.50")
       else if (cleanLine.includes(',')) {
         const parts = cleanLine.split(',')
-        if (parts.length >= 2) {
+        if (parts.length >= 3) {
+          name = parts[0].trim()
+          const qtyStr = parts[1].trim()
+          const priceStr = parts[2].trim()
+          const qtyMatch = qtyStr.match(/(\d+)/)
+          const priceMatch = priceStr.match(/R?\$?\s*([\d.,]+)/)
+          if (qtyMatch) {
+            quantity = parseInt(qtyMatch[1]) || 1
+          }
+          if (priceMatch) {
+            price = parseFloat(priceMatch[1].replace(',', '.')) || 0
+          }
+        }
+        // Formato: "produto, quantidade" (ex: "arroz, 2")
+        else if (parts.length >= 2) {
           name = parts[0].trim()
           const qtyStr = parts[1].trim()
           const qtyMatch = qtyStr.match(/(\d+)/)
@@ -673,10 +710,22 @@ function WhatsAppImportModal({ onImport, onClose }) {
         }
       }
       
-      // Formato: "produto - quantidade" (ex: "arroz - 2")
+      // Formato: "produto - quantidade - preço" (ex: "arroz - 2 - R$ 5,50")
       else if (cleanLine.includes(' - ')) {
         const parts = cleanLine.split(' - ')
-        if (parts.length >= 2) {
+        if (parts.length >= 3) {
+          name = parts[0].trim()
+          const qtyMatch = parts[1].match(/(\d+)/)
+          const priceMatch = parts[2].match(/R?\$?\s*([\d.,]+)/)
+          if (qtyMatch) {
+            quantity = parseInt(qtyMatch[1]) || 1
+          }
+          if (priceMatch) {
+            price = parseFloat(priceMatch[1].replace(',', '.')) || 0
+          }
+        }
+        // Formato: "produto - quantidade" (ex: "arroz - 2")
+        else if (parts.length >= 2) {
           name = parts[0].trim()
           const qtyMatch = parts[1].match(/(\d+)/)
           if (qtyMatch) {
@@ -694,7 +743,7 @@ function WhatsAppImportModal({ onImport, onClose }) {
       if (name) {
         name = normalizeProductText(name.trim())
         if (name && name.length > 1) { // Evita nomes muito pequenos
-          products.push({ name, quantity, category: currentCategory })
+          products.push({ name, quantity, category: currentCategory, price })
         }
       }
     }
@@ -785,9 +834,9 @@ function WhatsAppImportModal({ onImport, onClose }) {
               placeholder="Cole sua lista compartilhada do SwipeCart aqui...
 
 Ou use qualquer formato:
-• Banana, 6
+• Banana, 6, 2.50
 • 2 kg Carne
-• Arroz - 1 
+• Arroz - 1 - R$ 8,50
 • Leite"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue h-32 resize-none text-sm"
             />
@@ -803,7 +852,12 @@ Ou use qualquer formato:
                 {previewProducts.map((product, index) => (
                   <div key={index} className="flex justify-between items-center py-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-800">{product.name}</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm text-gray-800">{product.name}</span>
+                        {product.price > 0 && (
+                          <span className="text-xs text-gray-600">R$ {product.price.toFixed(2)}</span>
+                        )}
+                      </div>
                       {product.category !== 'geral' && (
                         <span className="text-xs bg-gray-200 px-1 py-0.5 rounded text-gray-600">
                           {getCategoryById(product.category).name}

@@ -16,8 +16,8 @@ function FloatingAddButton({ onAddProduct }) {
     setIsModalOpen(false)
   }
 
-  const handleAddProduct = (name, quantity, category) => {
-    onAddProduct(name, quantity, category)
+  const handleAddProduct = (name, quantity, category, price) => {
+    onAddProduct(name, quantity, category, price)
     closeModal()
   }
 
@@ -46,6 +46,7 @@ function FloatingAddButton({ onAddProduct }) {
 function AddProductModal({ onAddProduct, onClose }) {
   const [productName, setProductName] = useState('')
   const [quantity, setQuantity] = useState(1)
+  const [price, setPrice] = useState('')
   const [step, setStep] = useState(1) // 1: produto e quantidade, 2: categoria
 
   const handleFirstStep = (e) => {
@@ -57,7 +58,7 @@ function AddProductModal({ onAddProduct, onClose }) {
   }
 
   const handleCategorySelect = (categoryId) => {
-    onAddProduct(productName, quantity, categoryId)
+    onAddProduct(productName, quantity, categoryId, price)
   }
 
   const goBackToProduct = () => {
@@ -145,6 +146,26 @@ function AddProductModal({ onAddProduct, onClose }) {
               </div>
             </div>
 
+            {/* Price */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Preço estimado (opcional)
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">R$</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="0,00"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Valor sugerido para estimativa</p>
+            </div>
+
             {/* Actions */}
             <div className="flex gap-3 pt-2">
               <button
@@ -171,7 +192,7 @@ function AddProductModal({ onAddProduct, onClose }) {
           /* Step 2: Category Selection */
           <div className="p-4">
             <p className="text-sm text-gray-600 mb-4">
-              Produto: <strong>{productName}</strong> (Qtd: {quantity})
+              Produto: <strong>{productName}</strong> (Qtd: {quantity}) {price && `• R$ ${parseFloat(price).toFixed(2)}`}
             </p>
             
             <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">

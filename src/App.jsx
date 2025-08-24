@@ -19,13 +19,13 @@ function App() {
   useEffect(() => {
     if (!hasSeenTour && currentView === 'main' && currentList.length === 0) {
       const exampleList = [
-        { id: Date.now() + 1, name: 'Banana', quantity: 6, category: 'hortifruti', status: 'pending', addedAt: new Date().toISOString() },
-        { id: Date.now() + 2, name: 'Leite', quantity: 2, category: 'laticinios', status: 'pending', addedAt: new Date().toISOString() },
-        { id: Date.now() + 3, name: 'Pão de Forma', quantity: 1, category: 'padaria', status: 'pending', addedAt: new Date().toISOString() },
-        { id: Date.now() + 4, name: 'Frango', quantity: 1, category: 'acougue', status: 'pending', addedAt: new Date().toISOString() },
-        { id: Date.now() + 5, name: 'Arroz', quantity: 1, category: 'mercearia', status: 'pending', addedAt: new Date().toISOString() },
-        { id: Date.now() + 6, name: 'Detergente', quantity: 1, category: 'limpeza', status: 'completed', addedAt: new Date().toISOString() },
-        { id: Date.now() + 7, name: 'Shampoo', quantity: 1, category: 'higiene', status: 'missing', addedAt: new Date().toISOString() }
+        { id: Date.now() + 1, name: 'Banana', quantity: 6, category: 'hortifruti', status: 'pending', addedAt: new Date().toISOString(), price: 3.99 },
+        { id: Date.now() + 2, name: 'Leite Integral', quantity: 2, category: 'laticinios', status: 'pending', addedAt: new Date().toISOString(), price: 5.49 },
+        { id: Date.now() + 3, name: 'Pão de Forma', quantity: 1, category: 'padaria', status: 'pending', addedAt: new Date().toISOString(), price: 4.89 },
+        { id: Date.now() + 4, name: 'Peito de Frango', quantity: 1, category: 'acougue', status: 'pending', addedAt: new Date().toISOString(), price: 14.90 },
+        { id: Date.now() + 5, name: 'Arroz', quantity: 1, category: 'mercearia', status: 'pending', addedAt: new Date().toISOString(), price: 7.25 },
+        { id: Date.now() + 6, name: 'Detergente', quantity: 1, category: 'limpeza', status: 'completed', addedAt: new Date().toISOString(), price: 2.99 },
+        { id: Date.now() + 7, name: 'Shampoo', quantity: 1, category: 'higiene', status: 'missing', addedAt: new Date().toISOString(), price: 12.50 }
       ]
       
       setCurrentList(exampleList)
@@ -35,7 +35,8 @@ function App() {
         name: item.name,
         category: item.category,
         lastQuantity: item.quantity,
-        lastUsed: new Date().toISOString()
+        lastUsed: new Date().toISOString(),
+        suggestedPrice: item.price
       }))
       setAllProducts(exampleProducts)
     }
@@ -51,7 +52,7 @@ function App() {
     }
   }, [hasSeenTour, currentView])
 
-  const addProduct = (name, quantity, category = 'geral') => {
+  const addProduct = (name, quantity, category = 'geral', price = 0) => {
     const normalizedName = normalizeProductText(name)
     
     if (!normalizedName) return // Não adiciona se o nome estiver vazio após normalização
@@ -62,7 +63,8 @@ function App() {
       quantity,
       category,
       status: 'pending',
-      addedAt: new Date().toISOString()
+      addedAt: new Date().toISOString(),
+      price: parseFloat(price) || 0
     }
 
     setCurrentList(prev => [...prev, product])
@@ -75,12 +77,13 @@ function App() {
           name: normalizedName,
           category,
           lastQuantity: quantity,
-          lastUsed: new Date().toISOString()
+          lastUsed: new Date().toISOString(),
+          suggestedPrice: parseFloat(price) || 0
         }]
       } else {
         return prev.map(p => 
           p.name.toLowerCase() === normalizedName.toLowerCase()
-            ? { ...p, category, lastQuantity: quantity, lastUsed: new Date().toISOString() }
+            ? { ...p, category, lastQuantity: quantity, lastUsed: new Date().toISOString(), suggestedPrice: parseFloat(price) || p.suggestedPrice || 0 }
             : p
         )
       }
@@ -112,13 +115,14 @@ function App() {
   }
 
   const createNewList = (selectedProducts) => {
-    const newList = selectedProducts.map(({ name, quantity, category }) => ({
+    const newList = selectedProducts.map(({ name, quantity, category, price }) => ({
       id: Date.now() + Math.random(),
       name,
       quantity,
       category: category || 'geral',
       status: 'pending',
-      addedAt: new Date().toISOString()
+      addedAt: new Date().toISOString(),
+      price: parseFloat(price) || 0
     }))
 
     setCurrentList(newList)
@@ -131,7 +135,8 @@ function App() {
           return {
             ...product,
             lastQuantity: selected.quantity,
-            lastUsed: new Date().toISOString()
+            lastUsed: new Date().toISOString(),
+            suggestedPrice: parseFloat(selected.price) || product.suggestedPrice || 0
           }
         }
         return product

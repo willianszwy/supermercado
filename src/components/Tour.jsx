@@ -12,7 +12,7 @@ const tourSteps = [
   {
     id: 'add-button',
     title: '➕ Adicionar Produtos',
-    content: 'Clique no botão azul flutuante para adicionar novos produtos à sua lista. Escolha o nome, quantidade e categoria!',
+    content: 'Clique no botão azul flutuante para adicionar novos produtos à sua lista. Escolha o nome, quantidade, categoria e preço estimado!',
     target: '[data-tour="add-button"]',
     position: 'top-center'
   },
@@ -38,9 +38,16 @@ const tourSteps = [
     position: 'bottom'
   },
   {
+    id: 'price-estimation',
+    title: '💰 Estimativa de Gastos',
+    content: 'Veja sua estimativa de gastos no final da lista! Acompanhe quanto já gastou, o que ainda falta comprar e o total geral. Valores são sugeridos para sua referência.',
+    target: '.bg-blue-50.border-2.border-blue-200',
+    position: 'top'
+  },
+  {
     id: 'whatsapp-share',
     title: '📱 Compartilhar no WhatsApp',
-    content: 'Clique no botão verde do WhatsApp para compartilhar sua lista! A outra pessoa pode importar direto no app dela.',
+    content: 'Clique no botão verde do WhatsApp para compartilhar sua lista com preços! A outra pessoa pode importar direto no app dela.',
     target: '.fixed.bottom-28',
     position: 'left'
   },
