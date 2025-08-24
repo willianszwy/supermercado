@@ -1,14 +1,3 @@
-import AcougueIcon from '../components/icons/AcougueIcon'
-import HortifrutiIcon from '../components/icons/HortifrutiIcon'
-import LaticiniosIcon from '../components/icons/LaticiniosIcon'
-import PadariaIcon from '../components/icons/PadariaIcon'
-import LimpezaIcon from '../components/icons/LimpezaIcon'
-import HigieneIcon from '../components/icons/HigieneIcon'
-import BebidasIcon from '../components/icons/BebidasIcon'
-import CongeladosIcon from '../components/icons/CongeladosIcon'
-import MerceariaIcon from '../components/icons/MerceariaIcon'
-import BomboneriaIcon from '../components/icons/BomboneriaIcon'
-import GeralIcon from '../components/icons/GeralIcon'
 
 // Ordenação baseada no fluxo típico de supermercado
 export const CATEGORIES = {
@@ -16,7 +5,6 @@ export const CATEGORIES = {
     id: 'hortifruti',
     name: 'Hortifrúti',
     color: 'green',
-    icon: HortifrutiIcon,
     order: 1,
     description: 'Frutas, verduras e legumes'
   },
@@ -24,7 +12,6 @@ export const CATEGORIES = {
     id: 'acougue',
     name: 'Açougue',
     color: 'red',
-    icon: AcougueIcon,
     order: 2,
     description: 'Carnes, aves e embutidos'
   },
@@ -32,7 +19,6 @@ export const CATEGORIES = {
     id: 'laticinios',
     name: 'Laticínios',
     color: 'blue',
-    icon: LaticiniosIcon,
     order: 3,
     description: 'Leites, queijos e iogurtes'
   },
@@ -40,7 +26,6 @@ export const CATEGORIES = {
     id: 'congelados',
     name: 'Congelados',
     color: 'indigo',
-    icon: CongeladosIcon,
     order: 4,
     description: 'Produtos congelados'
   },
@@ -48,7 +33,6 @@ export const CATEGORIES = {
     id: 'padaria',
     name: 'Padaria',
     color: 'orange',
-    icon: PadariaIcon,
     order: 5,
     description: 'Pães, bolos e doces'
   },
@@ -56,7 +40,6 @@ export const CATEGORIES = {
     id: 'mercearia',
     name: 'Mercearia',
     color: 'amber',
-    icon: MerceariaIcon,
     order: 6,
     description: 'Enlatados, grãos e temperos'
   },
@@ -64,7 +47,6 @@ export const CATEGORIES = {
     id: 'bebidas',
     name: 'Bebidas',
     color: 'cyan',
-    icon: BebidasIcon,
     order: 7,
     description: 'Refrigerantes, sucos e águas'
   },
@@ -72,7 +54,6 @@ export const CATEGORIES = {
     id: 'bombonieria',
     name: 'Bombonieria',
     color: 'pink',
-    icon: BomboneriaIcon,
     order: 8,
     description: 'Doces, chocolates e guloseimas'
   },
@@ -80,7 +61,6 @@ export const CATEGORIES = {
     id: 'limpeza',
     name: 'Limpeza',
     color: 'purple',
-    icon: LimpezaIcon,
     order: 9,
     description: 'Produtos de limpeza doméstica'
   },
@@ -88,7 +68,6 @@ export const CATEGORIES = {
     id: 'higiene',
     name: 'Higiene',
     color: 'teal',
-    icon: HigieneIcon,
     order: 10,
     description: 'Higiene pessoal e beleza'
   },
@@ -96,7 +75,6 @@ export const CATEGORIES = {
     id: 'geral',
     name: 'Geral',
     color: 'gray',
-    icon: GeralIcon,
     order: 11,
     description: 'Outros produtos'
   }

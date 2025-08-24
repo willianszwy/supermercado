@@ -1,18 +1,14 @@
-import { getCategoryById, getCategoryLightColor, getCategoryBorderColor } from '../utils/categories'
+import { getCategoryColor } from '../utils/categories'
 
 function CategoryHeader({ category, itemCount, isCollapsed, onToggle }) {
-  const IconComponent = category.icon
-  
   return (
     <button
       onClick={onToggle}
       className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-gray-50 transition-colors rounded-t-lg border-b border-gray-100"
     >
       <div className="flex items-center gap-3 flex-1">
-        {/* Ícone da categoria */}
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${getCategoryLightColor(category.id)} flex-shrink-0`}>
-          <IconComponent className="w-4 h-4 text-gray-700" />
-        </div>
+        {/* Círculo colorido da categoria */}
+        <div className={`w-4 h-4 rounded-full ${getCategoryColor(category.id)} flex-shrink-0`}></div>
         
         {/* Nome da categoria */}
         <h3 className="text-base font-semibold text-gray-900 uppercase tracking-wide">
