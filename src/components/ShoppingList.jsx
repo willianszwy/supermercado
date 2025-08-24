@@ -228,7 +228,7 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
       {currentList.length > 0 && (
         <button
           onClick={handleShareWhatsApp}
-          className="fixed bottom-24 right-6 w-12 h-12 bg-green-500 text-white rounded-full shadow-lg hover:shadow-xl hover:bg-green-600 flex items-center justify-center transition-all duration-300 z-40"
+          className="fixed bottom-28 right-6 w-12 h-12 bg-green-500 text-white rounded-full shadow-lg hover:shadow-xl hover:bg-green-600 flex items-center justify-center transition-all duration-300 z-40"
           title="Compartilhar no WhatsApp"
         >
           <WhatsAppIcon className="w-5 h-5" />
