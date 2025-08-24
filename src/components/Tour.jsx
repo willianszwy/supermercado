@@ -5,7 +5,7 @@ const tourSteps = [
   {
     id: 'welcome',
     title: '👋 Bem-vindo ao SwipeCart!',
-    content: 'Sua lista de compras inteligente com gestos. Vamos fazer um tour rápido para você aprender a usar.',
+    content: 'Sua lista de compras inteligente com gestos! Criamos alguns produtos de exemplo para você praticar. Vamos fazer um tour rápido?',
     target: null,
     position: 'center'
   },
@@ -33,7 +33,7 @@ const tourSteps = [
   {
     id: 'drag-gesture',
     title: '👆 Gestos Inteligentes',
-    content: 'Arraste os itens para DIREITA (✅ comprado) ou ESQUERDA (❌ em falta). É muito mais rápido que clicar!',
+    content: 'Arraste os itens para DIREITA (✅ comprado) ou ESQUERDA (❌ em falta). Experimente com os produtos de exemplo!',
     target: '[data-tour="pending-section"]',
     position: 'bottom'
   },

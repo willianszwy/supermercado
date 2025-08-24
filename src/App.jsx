@@ -15,12 +15,38 @@ function App() {
   const [hasSeenTour, setHasSeenTour] = useLocalStorage('hasSeenTour', false)
   const [gestureInteractionCount, setGestureInteractionCount] = useLocalStorage('gestureInteractionCount', 0)
 
+  // Criar lista de exemplo na primeira instalação
+  useEffect(() => {
+    if (!hasSeenTour && currentView === 'main' && currentList.length === 0) {
+      const exampleList = [
+        { id: Date.now() + 1, name: 'Banana', quantity: 6, category: 'hortifruti', status: 'pending', addedAt: new Date().toISOString() },
+        { id: Date.now() + 2, name: 'Leite', quantity: 2, category: 'laticinios', status: 'pending', addedAt: new Date().toISOString() },
+        { id: Date.now() + 3, name: 'Pão de Forma', quantity: 1, category: 'padaria', status: 'pending', addedAt: new Date().toISOString() },
+        { id: Date.now() + 4, name: 'Frango', quantity: 1, category: 'acougue', status: 'pending', addedAt: new Date().toISOString() },
+        { id: Date.now() + 5, name: 'Arroz', quantity: 1, category: 'mercearia', status: 'pending', addedAt: new Date().toISOString() },
+        { id: Date.now() + 6, name: 'Detergente', quantity: 1, category: 'limpeza', status: 'completed', addedAt: new Date().toISOString() },
+        { id: Date.now() + 7, name: 'Shampoo', quantity: 1, category: 'higiene', status: 'missing', addedAt: new Date().toISOString() }
+      ]
+      
+      setCurrentList(exampleList)
+      
+      // Adicionar produtos ao histórico para futura reutilização  
+      const exampleProducts = exampleList.map(item => ({
+        name: item.name,
+        category: item.category,
+        lastQuantity: item.quantity,
+        lastUsed: new Date().toISOString()
+      }))
+      setAllProducts(exampleProducts)
+    }
+  }, [hasSeenTour, currentView, currentList.length, setCurrentList, setAllProducts])
+
   // Mostrar tour automaticamente na primeira visita
   useEffect(() => {
     if (!hasSeenTour && currentView === 'main') {
       const timer = setTimeout(() => {
         setShowTour(true)
-      }, 1000) // Delay de 1 segundo para carregar a interface
+      }, 1500) // Delay maior para carregar a lista de exemplo
       return () => clearTimeout(timer)
     }
   }, [hasSeenTour, currentView])
