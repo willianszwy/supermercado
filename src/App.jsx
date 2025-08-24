@@ -13,7 +13,6 @@ function App() {
   const [cartHistory, setCartHistory] = useLocalStorage('cartHistory', [])
   const [showTour, setShowTour] = useState(false)
   const [hasSeenTour, setHasSeenTour] = useLocalStorage('hasSeenTour', false)
-  const [showGestureHints, setShowGestureHints] = useLocalStorage('showGestureHints', true)
   const [gestureInteractionCount, setGestureInteractionCount] = useLocalStorage('gestureInteractionCount', 0)
 
   // Mostrar tour automaticamente na primeira visita
@@ -175,7 +174,6 @@ function App() {
             onShowTour={handleShowTour}
             onFinishCart={finishCart}
             onShowHistory={() => setCurrentView('history')}
-            showGestureHints={showGestureHints}
           />
         ) : currentView === 'newList' ? (
           <NewListView

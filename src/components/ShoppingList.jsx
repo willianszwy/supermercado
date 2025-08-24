@@ -10,7 +10,7 @@ import TrashIcon from './TrashIcon'
 import HelpIcon from './HelpIcon'
 import { getCategoryById, getCategoriesWithItems, getCategoryColor } from '../utils/categories'
 
-function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, onClearList, onShowTour, onFinishCart, onShowHistory, showGestureHints }) {
+function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, onClearList, onShowTour, onFinishCart, onShowHistory }) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [collapsedCategories, setCollapsedCategories] = useState(new Set())
   const [activeTab, setActiveTab] = useState('pending')
@@ -132,7 +132,6 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
                             items={categoryWithItems.items}
                             onUpdateStatus={onUpdateStatus}
                             hideTitle={true}
-                            showGestureHints={showGestureHints}
                           />
                         </div>
                       )}

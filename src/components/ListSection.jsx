@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import ListItem from './ListItem'
 
-function ListSection({ title, items, onUpdateStatus, statusType, isEmpty = false, dataTour, hideTitle = false, showGestureHints = false }) {
+function ListSection({ title, items, onUpdateStatus, statusType, isEmpty = false, dataTour, hideTitle = false }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   
   // Só permite colapsar as seções "Comprados" e "Em Falta"
@@ -33,10 +33,6 @@ function ListSection({ title, items, onUpdateStatus, statusType, isEmpty = false
             <div className="text-center text-gray-500 italic py-5">
               Adicione produtos à sua lista
             </div>
-          ) : items.length === 0 && title === 'Pendentes' ? (
-            <div className="text-center text-gray-500 italic py-5">
-              Arraste itens para direita (✓) ou esquerda (✗)
-            </div>
           ) : items.length === 0 ? null : (
             <ul className="list-none">
               {items.map(item => (
@@ -45,7 +41,6 @@ function ListSection({ title, items, onUpdateStatus, statusType, isEmpty = false
                   item={item}
                   onUpdateStatus={onUpdateStatus}
                   statusType={statusType}
-                  showGestureHints={showGestureHints && item.status === 'pending'}
                 />
               ))}
             </ul>

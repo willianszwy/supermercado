@@ -45,32 +45,6 @@
     @apply border-primary-red bg-primary-red-light shadow-primary-red;
   }
   
-  /* Indicadores sutis de gesture para novos usuários */
-  .gesture-hint {
-    @apply relative;
-  }
-  
-  .gesture-hint::before {
-    content: '';
-    @apply absolute -left-1 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-gray-300 rounded-full opacity-50;
-    animation: pulse-left 2s infinite;
-  }
-  
-  .gesture-hint::after {
-    content: '';
-    @apply absolute -right-1 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-gray-300 rounded-full opacity-50;
-    animation: pulse-right 2s infinite 1s;
-  }
-  
-  @keyframes pulse-left {
-    0%, 100% { opacity: 0.3; transform: translateY(-50%) translateX(0); }
-    50% { opacity: 0.8; transform: translateY(-50%) translateX(-4px); }
-  }
-  
-  @keyframes pulse-right {
-    0%, 100% { opacity: 0.3; transform: translateY(-50%) translateX(0); }
-    50% { opacity: 0.8; transform: translateY(-50%) translateX(4px); }
-  }
   
   /* Área de toque expandida para elementos críticos */
   .touch-target-expanded {
@@ -229,15 +203,6 @@
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   }
   
-  /* Melhoria nos hints de gesto */
-  .gesture-hint-mobile {
-    animation: subtle-pulse 3s infinite;
-  }
-  
-  @keyframes subtle-pulse {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
-  }
   
   /* Transições suaves entre abas */
   .tab-content {

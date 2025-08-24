@@ -37,7 +37,7 @@ function getQuantityUnit(productName, quantity) {
   return null // Sem sugestão de unidade
 }
 
-function ListItem({ item, onUpdateStatus, statusType, showGestureHints = false }) {
+function ListItem({ item, onUpdateStatus, statusType }) {
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState(0)
   const [dragDirection, setDragDirection] = useState(null) // 'left' | 'right' | null
@@ -252,7 +252,7 @@ function ListItem({ item, onUpdateStatus, statusType, showGestureHints = false }
 
   return (
     <li
-      className={`item-card ${getStatusClasses()} border-2 rounded-lg p-2.5 sm:p-3 mb-1.5 shadow-sm transition-all duration-300 select-none ${isDragging ? 'cursor-grabbing opacity-90 transform rotate-1 shadow-lg' : 'cursor-grab'} ${getDragClasses()} ${showGestureHints ? 'gesture-hint' : ''} relative overflow-hidden`}
+      className={`item-card ${getStatusClasses()} border-2 rounded-lg p-2.5 sm:p-3 mb-1.5 shadow-sm transition-all duration-300 select-none ${isDragging ? 'cursor-grabbing opacity-90 transform rotate-1 shadow-lg' : 'cursor-grab'} ${getDragClasses()} relative overflow-hidden`}
       style={{ 
         transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
         touchAction: item.status === 'pending' ? 'pan-y' : 'auto' // Permite scroll vertical, bloqueia horizontal
@@ -296,11 +296,6 @@ function ListItem({ item, onUpdateStatus, statusType, showGestureHints = false }
               {item.name}
             </div>
           </div>
-          {showGestureHints && item.status === 'pending' && (
-            <div className="text-xs text-gray-400 mt-0.5">
-              ←✗ →✓
-            </div>
-          )}
         </div>
         
         <div className="flex items-center gap-3 ml-4">
