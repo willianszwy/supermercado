@@ -46,18 +46,13 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
       return
     }
 
-    // Gerar texto da lista no formato importável
+    // Gerar texto da lista no formato importável (apenas os itens)
     const listText = currentList
-      .map(item => {
-        const category = getCategoryById(item.category || 'geral')
-        return `${item.name}, ${item.quantity}`
-      })
+      .map(item => `${item.name}, ${item.quantity}`)
       .join('\n')
-
-    const message = `📋 *Lista de Compras - SwipeCart*\n\n${listText}\n\n💡 _Cole este texto no campo "Importar" do SwipeCart para adicionar todos os itens à sua lista!_`
     
     // URL do WhatsApp para compartilhar
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(listText)}`
     
     // Abrir WhatsApp
     window.open(whatsappUrl, '_blank')
