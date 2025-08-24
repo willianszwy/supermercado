@@ -41,7 +41,7 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
 
   return (
     <>
-      <header className="py-5 flex justify-between items-center border-b-2 border-primary-blue mb-5">
+      <header className="py-3 flex justify-between items-center border-b-2 border-primary-blue mb-3">
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold text-primary-blue">
             SwipeCart
@@ -77,13 +77,13 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
         missingCount={missingItems.length}
       />
 
-      <main className="px-4">
+      <main className="px-3">
         {/* Conteúdo baseado na aba ativa */}
         {activeTab === 'pending' && (
           <div className="tab-content">
             {/* Header de rota sugerida */}
             {pendingItems.length > 0 && (
-              <div className="route-suggestion mb-6 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+              <div className="route-suggestion mb-3 p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
                     <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -109,7 +109,7 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
 
             {/* Lista de Pendentes por Categoria */}
             {pendingItems.length > 0 ? (
-              <div className="space-y-4" data-tour="pending-section">
+              <div className="space-y-2" data-tour="pending-section">
                 {categoriesWithPendingItems.map((categoryWithItems) => {
                   const isCollapsed = collapsedCategories.has(categoryWithItems.id)
                   const completedInCategory = currentList.filter(item => 
@@ -127,7 +127,7 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
                       />
                       
                       {!isCollapsed && (
-                        <div className="px-6 pb-6">
+                        <div className="px-4 pb-4">
                           <ListSection
                             items={categoryWithItems.items}
                             onUpdateStatus={onUpdateStatus}

@@ -252,7 +252,7 @@ function ListItem({ item, onUpdateStatus, statusType, showGestureHints = false }
 
   return (
     <li
-      className={`item-card ${getStatusClasses()} border-2 rounded-lg p-3 sm:p-4 mb-2 shadow-sm transition-all duration-300 select-none ${isDragging ? 'cursor-grabbing opacity-90 transform rotate-1 shadow-lg' : 'cursor-grab'} ${getDragClasses()} ${showGestureHints ? 'gesture-hint' : ''} relative overflow-hidden`}
+      className={`item-card ${getStatusClasses()} border-2 rounded-lg p-2.5 sm:p-3 mb-1.5 shadow-sm transition-all duration-300 select-none ${isDragging ? 'cursor-grabbing opacity-90 transform rotate-1 shadow-lg' : 'cursor-grab'} ${getDragClasses()} ${showGestureHints ? 'gesture-hint' : ''} relative overflow-hidden`}
       style={{ 
         transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
         touchAction: item.status === 'pending' ? 'pan-y' : 'auto' // Permite scroll vertical, bloqueia horizontal
@@ -295,15 +295,10 @@ function ListItem({ item, onUpdateStatus, statusType, showGestureHints = false }
             <div className="item-name font-semibold text-base text-gray-900 truncate">
               {item.name}
             </div>
-            {showGestureHints && item.status === 'pending' && (
-              <div className="text-xs text-gray-400 hidden sm:block">
-                ← ✓ →  ← ✗ →
-              </div>
-            )}
           </div>
           {showGestureHints && item.status === 'pending' && (
-            <div className="text-xs text-gray-500 mt-1">
-              Arraste: direita para ✓ comprado, esquerda para ✗ em falta
+            <div className="text-xs text-gray-400 mt-0.5">
+              ←✗ →✓
             </div>
           )}
         </div>

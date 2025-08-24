@@ -5,11 +5,11 @@ function CategoryHeader({ category, itemCount, completedCount, isCollapsed, onTo
   return (
     <button
       onClick={onToggle}
-      className="category-header w-full px-4 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-all duration-200 rounded-t-lg border-b border-gray-100"
+      className="category-header w-full px-3 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-all duration-200 rounded-t-lg border-b border-gray-100"
     >
-      <div className="flex items-center gap-4 flex-1 min-w-0">
+      <div className="flex items-center gap-3 flex-1 min-w-0">
         {/* Ícone da categoria com cor de fundo */}
-        <div className={`category-icon w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center ${getCategoryLightColor(category.id)} ${getCategoryBorderColor(category.id)} border-2 flex-shrink-0`}>
+        <div className={`category-icon w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center ${getCategoryLightColor(category.id)} ${getCategoryBorderColor(category.id)} border-2 flex-shrink-0`}>
           <IconComponent className={`w-6 h-6 sm:w-7 sm:h-7 ${getCategoryTextColor(category.id)}`} />
         </div>
         

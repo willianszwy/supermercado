@@ -28,7 +28,7 @@ function ListSection({ title, items, onUpdateStatus, statusType, isEmpty = false
         </div>
       )}
       {(hideTitle || !canCollapse || !isCollapsed) && (
-        <div className={hideTitle ? "space-y-2" : "min-h-12 border-2 border-dashed border-gray-300 rounded p-3"}>
+        <div className={hideTitle ? "space-y-1" : "min-h-12 border-2 border-dashed border-gray-300 rounded p-3"}>
           {isEmpty ? (
             <div className="text-center text-gray-500 italic py-5">
               Adicione produtos à sua lista

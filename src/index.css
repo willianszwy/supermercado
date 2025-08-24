@@ -197,20 +197,20 @@
   /* Responsividade para categorias */
   @media (max-width: 640px) {
     .category-header {
-      padding: 1rem;
+      padding: 0.75rem;
     }
     
     .category-icon {
-      width: 2.5rem;
-      height: 2.5rem;
+      width: 2rem;
+      height: 2rem;
     }
     
     .category-title {
-      font-size: 1rem;
+      font-size: 0.95rem;
     }
     
     .progress-bar {
-      height: 0.5rem;
+      height: 0.4rem;
     }
     
     .route-suggestion {
