@@ -149,14 +149,6 @@
     @apply bg-gray-50 border-gray-200 text-gray-800;
   }
   
-  /* Estados de progresso das categorias */
-  .progress-complete {
-    @apply bg-green-500;
-  }
-  
-  .progress-in-progress {
-    @apply bg-gradient-to-r from-yellow-400 to-orange-500;
-  }
   
   /* Animações suaves para transições */
   .category-card {
@@ -170,23 +162,6 @@
   
   /* Responsividade para categorias */
   @media (max-width: 640px) {
-    .category-header {
-      padding: 0.75rem;
-    }
-    
-    .category-icon {
-      width: 2rem;
-      height: 2rem;
-    }
-    
-    .category-title {
-      font-size: 0.95rem;
-    }
-    
-    .progress-bar {
-      height: 0.4rem;
-    }
-    
     .route-suggestion {
       padding: 0.75rem;
       font-size: 0.875rem;

@@ -121,7 +121,6 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
                       <CategoryHeader 
                         category={categoryWithItems}
                         itemCount={categoryWithItems.items.length}
-                        completedCount={completedInCategory}
                         isCollapsed={isCollapsed}
                         onToggle={() => toggleCategoryCollapse(categoryWithItems.id)}
                       />
