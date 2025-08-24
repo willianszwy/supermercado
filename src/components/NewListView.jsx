@@ -4,12 +4,14 @@ import TrashIcon from './TrashIcon'
 import PlusIcon from './PlusIcon'
 import SimplePlusIcon from './SimplePlusIcon'
 import ImportIcon from './ImportIcon'
+import WhatsAppIcon from './icons/WhatsAppIcon'
 import { normalizeProductText } from '../utils/textUtils'
 
 function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
   const [selectedProducts, setSelectedProducts] = useState(new Map())
   const [showAddModal, setShowAddModal] = useState(false)
   const [showBulkImportModal, setShowBulkImportModal] = useState(false)
+  const [showWhatsAppImportModal, setShowWhatsAppImportModal] = useState(false)
 
   const sortedProducts = [...allProducts].sort((a, b) => 
     new Date(b.lastUsed) - new Date(a.lastUsed)
@@ -80,24 +82,49 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
     setShowBulkImportModal(false)
   }
 
+  const handleWhatsAppImport = (products) => {
+    // Add all imported products to selected products
+    setSelectedProducts(prev => {
+      const newMap = new Map(prev)
+      products.forEach(product => {
+        newMap.set(product.name, product)
+      })
+      return newMap
+    })
+    
+    setShowWhatsAppImportModal(false)
+  }
+
   return (
     <>
-      <header className="py-5 flex items-center justify-between mb-5 border-b-2 border-primary-blue">
-        <div className="flex items-center gap-5">
-          <button onClick={onBack} className="btn-secondary">
-            ← Voltar
+      <header className="py-5 border-b-2 border-primary-blue mb-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-5">
+            <button onClick={onBack} className="btn-secondary">
+              ← Voltar
+            </button>
+            <h2 className="text-2xl font-bold text-primary-blue">
+              Nova Lista
+            </h2>
+          </div>
+          <button
+            onClick={() => setShowBulkImportModal(true)}
+            className="btn-secondary flex items-center gap-2"
+            title="Importar lista avançada"
+          >
+            <ImportIcon className="w-4 h-4" />
+            Avançado
           </button>
-          <h2 className="text-2xl font-bold text-primary-blue">
-            Nova Lista
-          </h2>
         </div>
+        
+        {/* Botão WhatsApp prominente */}
         <button
-          onClick={() => setShowBulkImportModal(true)}
-          className="btn-secondary flex items-center gap-2"
-          title="Importar lista em massa"
+          onClick={() => setShowWhatsAppImportModal(true)}
+          className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 mt-3"
+          title="Importar lista compartilhada pelo WhatsApp"
         >
-          <ImportIcon className="w-4 h-4" />
-          Import
+          <WhatsAppIcon className="w-5 h-5" />
+          Colar Lista do WhatsApp
         </button>
       </header>
 
@@ -208,6 +235,14 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
         <BulkImportModal
           onImport={handleBulkImport}
           onClose={() => setShowBulkImportModal(false)}
+        />
+      )}
+
+      {/* WhatsApp Import Modal */}
+      {showWhatsAppImportModal && (
+        <WhatsAppImportModal
+          onImport={handleWhatsAppImport}
+          onClose={() => setShowWhatsAppImportModal(false)}
         />
       )}
     </>
@@ -524,6 +559,219 @@ Açúcar
             }`}
           >
             Importar ({parseCsvText(importText).length})
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// WhatsApp Import Modal Component - Simplified for non-technical users
+function WhatsAppImportModal({ onImport, onClose }) {
+  const [importText, setImportText] = useState('')
+
+  const parseWhatsAppText = (text) => {
+    const lines = text.trim().split('\n').filter(line => line.trim())
+    const products = []
+
+    for (const line of lines) {
+      // Remove prefixos comuns de data/hora do WhatsApp
+      const cleanLine = line.replace(/^\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2}\s+[-–]\s+/, '')
+        .replace(/^\[\d{1,2}:\d{2}\]\s+/, '')
+        .replace(/^.*?:\s+/, '') // Remove "Nome: " do WhatsApp
+        .trim()
+
+      if (!cleanLine) continue
+
+      // Tenta diferentes formatos
+      let name = null
+      let quantity = 1
+
+      // Formato: "quantidade produto" (ex: "2 arroz", "3 kg carne")
+      const quantityFirst = cleanLine.match(/^(\d+)\s*(?:kg|g|l|ml|un|unidades?)?\s+(.+)$/i)
+      if (quantityFirst) {
+        quantity = parseInt(quantityFirst[1]) || 1
+        name = quantityFirst[2].trim()
+      }
+      
+      // Formato: "produto, quantidade" (ex: "arroz, 2")
+      else if (cleanLine.includes(',')) {
+        const parts = cleanLine.split(',')
+        if (parts.length >= 2) {
+          name = parts[0].trim()
+          const qtyStr = parts[1].trim()
+          const qtyMatch = qtyStr.match(/(\d+)/)
+          if (qtyMatch) {
+            quantity = parseInt(qtyMatch[1]) || 1
+          }
+        }
+      }
+      
+      // Formato: "produto - quantidade" (ex: "arroz - 2")
+      else if (cleanLine.includes(' - ')) {
+        const parts = cleanLine.split(' - ')
+        if (parts.length >= 2) {
+          name = parts[0].trim()
+          const qtyMatch = parts[1].match(/(\d+)/)
+          if (qtyMatch) {
+            quantity = parseInt(qtyMatch[1]) || 1
+          }
+        }
+      }
+      
+      // Formato simples: apenas o nome do produto
+      else {
+        name = cleanLine
+      }
+
+      // Limpa e normaliza o nome
+      if (name) {
+        name = normalizeProductText(name.replace(/^[-•*]\s*/, '').trim())
+        if (name) {
+          products.push({ name, quantity })
+        }
+      }
+    }
+
+    return products
+  }
+
+  const handleImport = () => {
+    if (!importText.trim()) return
+
+    const products = parseWhatsAppText(importText)
+    if (products.length === 0) {
+      alert('Não encontramos produtos válidos no texto. Certifique-se de colar uma lista de compras.')
+      return
+    }
+
+    onImport(products)
+  }
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText()
+      setImportText(text)
+    } catch (err) {
+      alert('Não conseguimos acessar a área de transferência. Por favor, cole o texto manualmente.')
+    }
+  }
+
+  const previewProducts = importText.trim() ? parseWhatsAppText(importText) : []
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg w-full max-w-md mx-auto shadow-xl max-h-[90vh] overflow-hidden">
+        {/* Header */}
+        <div className="flex justify-between items-center p-4 border-b">
+          <div className="flex items-center gap-2">
+            <WhatsAppIcon className="w-5 h-5 text-green-600" />
+            <h3 className="text-lg font-semibold text-gray-800">
+              Importar do WhatsApp
+            </h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <RemoveIcon className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-4 space-y-4 overflow-y-auto max-h-[calc(90vh-200px)]">
+          {/* Instructions */}
+          <div className="bg-blue-50 rounded-lg p-3">
+            <h4 className="font-medium text-blue-800 mb-2">Como usar:</h4>
+            <ol className="text-sm text-blue-700 space-y-1">
+              <li>1. Copie a lista de compras do WhatsApp</li>
+              <li>2. Cole aqui usando o botão ou Ctrl+V</li>
+              <li>3. Confira os produtos encontrados</li>
+              <li>4. Clique em "Importar"</li>
+            </ol>
+          </div>
+
+          {/* Paste Button */}
+          <div className="flex gap-2">
+            <button
+              onClick={handlePaste}
+              className="flex-1 py-2 px-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+            >
+              Colar Automaticamente
+            </button>
+            <button
+              onClick={() => setImportText('')}
+              className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              title="Limpar texto"
+            >
+              <RemoveIcon className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Text Input */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Texto da lista de compras:
+            </label>
+            <textarea
+              value={importText}
+              onChange={(e) => setImportText(e.target.value)}
+              placeholder="Cole sua lista aqui... 
+Exemplos aceitos:
+• 2 kg carne
+• Arroz, 1
+• Feijão - 2 
+• Açúcar"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue h-32 resize-none text-sm"
+            />
+          </div>
+
+          {/* Preview */}
+          {previewProducts.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium text-gray-800 mb-2">
+                Produtos encontrados ({previewProducts.length}):
+              </h4>
+              <div className="bg-blue-50 rounded-lg p-3 max-h-32 overflow-y-auto">
+                {previewProducts.map((product, index) => (
+                  <div key={index} className="flex justify-between items-center py-1">
+                    <span className="text-sm text-gray-800">{product.name}</span>
+                    <span className="text-xs bg-blue-200 px-2 py-1 rounded text-blue-800">
+                      {product.quantity}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {importText.trim() && previewProducts.length === 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-800">
+                Não encontramos produtos válidos no texto. Verifique se você colou uma lista de compras.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3 p-4 border-t">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleImport}
+            disabled={previewProducts.length === 0}
+            className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
+              previewProducts.length > 0
+                ? 'bg-green-600 text-white hover:bg-green-700'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            Importar {previewProducts.length > 0 ? `(${previewProducts.length})` : ''}
           </button>
         </div>
       </div>
