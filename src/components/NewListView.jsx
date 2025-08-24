@@ -608,6 +608,13 @@ function WhatsAppImportModal({ onImport, onClose }) {
 
       if (!cleanLine) continue
 
+      // Ignorar linhas de cabeçalho/formatação do SwipeCart
+      if (cleanLine.includes('Lista de Compras - SwipeCart') || 
+          cleanLine.includes('Importe esta lista no SwipeCart') ||
+          cleanLine.match(/^[📝✨🔹\*\-\s]*$/)) {
+        continue
+      }
+
       // Verificar se é um cabeçalho de categoria (ex: "🔹 *Hortifrúti*" ou "Hortifrúti:")
       const categoryHeader = cleanLine.match(/^(?:🔹\s*\*?|#+\s*)?([^*\n]+?)(?:\*|\s*:)?\s*$/i)
       if (categoryHeader) {
@@ -627,12 +634,24 @@ function WhatsAppImportModal({ onImport, onClose }) {
         }
       }
 
+      // Ignorar linhas que são só formatação/separadores
+      if (cleanLine.match(/^[\s\*\-\=\_\~\`\#\+\.\!\?]*$/) ||
+          cleanLine.match(/^[📝✨🔹🛒💚❤️🎉\s]*$/) ||
+          cleanLine.length < 2) {
+        continue
+      }
+
       // Tenta diferentes formatos de produtos
       let name = null
       let quantity = 1
 
       // Remove bullet points e formatação
       cleanLine = cleanLine.replace(/^[-•*]\s*/, '').trim()
+
+      // Se a linha não parece ser um produto, pular
+      if (!cleanLine.match(/[a-záéíóúàèìòù]/i)) {
+        continue
+      }
 
       // Formato: "quantidade produto" (ex: "2 arroz", "3 kg carne")
       const quantityFirst = cleanLine.match(/^(\d+)\s*(?:kg|g|l|ml|un|unidades?)?\s+(.+)$/i)
@@ -666,8 +685,8 @@ function WhatsAppImportModal({ onImport, onClose }) {
         }
       }
       
-      // Formato simples: apenas o nome do produto
-      else {
+      // Formato simples: apenas o nome do produto (deve ter pelo menos uma letra)
+      else if (cleanLine.match(/[a-záéíóúàèìòù]/i)) {
         name = cleanLine
       }
 
@@ -763,15 +782,13 @@ function WhatsAppImportModal({ onImport, onClose }) {
             <textarea
               value={importText}
               onChange={(e) => setImportText(e.target.value)}
-              placeholder="Cole sua lista aqui... 
-Exemplos aceitos:
-🔹 *Hortifrúti*
-• Banana, 6
-• Maçã, 4
+              placeholder="Cole sua lista compartilhada do SwipeCart aqui...
 
-🔹 *Mercearia*  
-• Arroz, 1
-• Feijão - 2"
+Ou use qualquer formato:
+• Banana, 6
+• 2 kg Carne
+• Arroz - 1 
+• Leite"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue h-32 resize-none text-sm"
             />
           </div>
