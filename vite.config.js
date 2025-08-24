@@ -11,7 +11,6 @@ export default defineConfig({
       devOptions: {
         enabled: true
       },
-      filename: 'manifest.json',
       includeAssets: ['favicon.ico', 'favicon/*.png', 'icon-192x192.png', 'icon-512x512.png'],
       manifest: {
         name: 'SwipeCart',
