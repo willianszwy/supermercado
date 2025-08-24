@@ -300,7 +300,7 @@ function ListItem({ item, onUpdateStatus, statusType }) {
         
         <div className="flex items-center gap-3 ml-4">
           <div className="flex flex-col items-end">
-            <div className="item-quantity text-white text-sm bg-slate-600 px-3 py-1.5 rounded-full font-bold min-w-8 text-center">
+            <div className="item-quantity text-white text-sm bg-slate-600 px-2.5 py-1.5 rounded-full font-bold text-center whitespace-nowrap">
               {item.quantity}
             </div>
             {getQuantityUnit(item.name, item.quantity) && (
