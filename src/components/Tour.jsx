@@ -12,42 +12,49 @@ const tourSteps = [
   {
     id: 'add-button',
     title: '➕ Adicionar Produtos',
-    content: 'Clique no botão verde flutuante para adicionar novos produtos à sua lista. Você pode digitar ou usar sua voz!',
+    content: 'Clique no botão azul flutuante para adicionar novos produtos à sua lista. Escolha o nome, quantidade e categoria!',
     target: '[data-tour="add-button"]',
     position: 'top-center'
   },
   {
+    id: 'tabs',
+    title: '📊 Sistema de Abas',
+    content: 'Use as abas para navegar: Pendentes (sua lista atual), Comprados (✓) e Em Falta (✗). Os números mostram quantos itens há em cada aba.',
+    target: '.tab-navigation',
+    position: 'bottom'
+  },
+  {
+    id: 'categories',
+    title: '🎯 Categorias Organizadas',
+    content: 'Seus itens são agrupados por categorias do supermercado (Hortifrúti, Açougue, etc) na ordem ideal para suas compras!',
+    target: '[data-tour="pending-section"]',
+    position: 'bottom'
+  },
+  {
     id: 'drag-gesture',
     title: '👆 Gestos Inteligentes',
-    content: 'Arraste os itens para direita (✅ comprado) ou esquerda (❌ em falta). É muito mais rápido que clicar!',
+    content: 'Arraste os itens para DIREITA (✅ comprado) ou ESQUERDA (❌ em falta). É muito mais rápido que clicar!',
     target: '[data-tour="pending-section"]',
     position: 'bottom'
   },
   {
-    id: 'collapse',
-    title: '📊 Seções Colapsáveis',
-    content: 'Clique nos títulos "Comprados" e "Em Falta" para recolher/expandir as seções. O número mostra quantos itens há.',
-    target: '[data-tour="completed-section"]',
-    position: 'top'
-  },
-  {
-    id: 'delete',
-    title: '🗑️ Remover Itens',
-    content: 'Clique no × ao lado dos itens pendentes para removê-los, ou use "Limpar Lista" no final da página.',
-    target: '[data-tour="pending-section"]',
-    position: 'bottom'
+    id: 'whatsapp-share',
+    title: '📱 Compartilhar no WhatsApp',
+    content: 'Clique no botão verde do WhatsApp para compartilhar sua lista! A outra pessoa pode importar direto no app dela.',
+    target: '.fixed.bottom-28',
+    position: 'left'
   },
   {
     id: 'new-list',
     title: '📋 Nova Lista',
-    content: 'Use "Nova Lista" para criar uma nova lista reutilizando produtos anteriores. Muito útil para compras recorrentes!',
+    content: 'Use "Nova Lista" para criar rapidamente uma nova lista reutilizando produtos anteriores. Perfeito para compras recorrentes!',
     target: '[data-tour="new-list"]',
     position: 'bottom-right'
   },
   {
     id: 'finish',
     title: '🎉 Pronto!',
-    content: 'Agora você já sabe usar o SwipeCart! Comece adicionando seus primeiros produtos. Boa compra! 🛒',
+    content: 'Agora você domina o SwipeCart! Comece adicionando produtos, arraste-os conforme compra e compartilhe suas listas. Boa compra! 🛒',
     target: null,
     position: 'center'
   }
@@ -150,6 +157,11 @@ function Tour({ isOpen, onClose }) {
         return { 
           top: Math.min(rect.bottom + margin, window.innerHeight - tooltipHeight - margin), 
           left: Math.max(margin, Math.min(window.innerWidth - tooltipWidth - margin, rect.left + (rect.width / 2) - tooltipWidth/2))
+        }
+      case 'left':
+        return { 
+          top: Math.max(margin, Math.min(window.innerHeight - tooltipHeight - margin, rect.top + (rect.height / 2) - tooltipHeight/2)),
+          right: window.innerWidth - rect.left + margin
         }
       case 'top-left':
         return { 
