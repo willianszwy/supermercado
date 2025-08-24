@@ -10,6 +10,7 @@ import TrashIcon from './TrashIcon'
 import HelpIcon from './HelpIcon'
 import WhatsAppIcon from './icons/WhatsAppIcon'
 import { getCategoryById, getCategoriesWithItems, getCategoryColor } from '../utils/categories'
+import { formatPrice, formatPriceSimple } from '../utils/priceUtils'
 
 function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, onClearList, onShowTour, onFinishCart, onShowHistory }) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
@@ -57,14 +58,14 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
       categoryWithItems.items.forEach(item => {
         const itemTotal = (item.price || 0) * item.quantity
         totalEstimated += itemTotal
-        const priceText = item.price ? ` - R$ ${item.price.toFixed(2)}` : ''
+        const priceText = item.price ? ` - ${formatPrice(item.price)}` : ''
         listText += `• ${item.name}, ${item.quantity}${priceText}\n`
       })
       listText += '\n'
     })
     
     if (totalEstimated > 0) {
-      listText += `💰 *Estimativa Total: R$ ${totalEstimated.toFixed(2)}*\n`
+      listText += `💰 *Estimativa Total: ${formatPrice(totalEstimated)}*\n`
       listText += '_* Valores sugeridos para estimativa_\n\n'
     }
     
@@ -233,25 +234,25 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
                 <div>
                   <p className="text-gray-600">Pendentes:</p>
                   <p className="font-bold text-blue-900">
-                    R$ {pendingItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                    {formatPrice(pendingItems.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0))}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-600">Comprados:</p>
                   <p className="font-bold text-green-700">
-                    R$ {completedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                    {formatPrice(completedItems.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0))}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-600">Em Falta:</p>
                   <p className="font-bold text-red-600">
-                    R$ {missingItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                    {formatPrice(missingItems.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0))}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-600">Total Geral:</p>
                   <p className="font-bold text-lg text-blue-900">
-                    R$ {currentList.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                    {formatPrice(currentList.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0))}
                   </p>
                 </div>
               </div>

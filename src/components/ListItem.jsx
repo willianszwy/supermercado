@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import RemoveIcon from './RemoveIcon'
 import CheckmarkIcon from './CheckmarkIcon'
+import { formatPrice } from '../utils/priceUtils'
 
 
 function ListItem({ item, onUpdateStatus, statusType }) {
@@ -258,8 +259,15 @@ function ListItem({ item, onUpdateStatus, statusType }) {
       <div className="flex justify-between items-center relative z-20">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3">
-            <div className="item-name font-semibold text-base text-gray-900 truncate">
-              {item.name}
+            <div className="flex flex-col">
+              <div className="item-name font-semibold text-base text-gray-900 truncate">
+                {item.name}
+              </div>
+              {item.price > 0 && (
+                <div className="text-xs text-gray-600">
+                  {formatPrice(item.price)}
+                </div>
+              )}
             </div>
           </div>
         </div>

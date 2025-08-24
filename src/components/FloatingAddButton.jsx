@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { normalizeProductText } from '../utils/textUtils'
 import { getCategoriesList, CATEGORIES, getCategoryLightColor, getCategoryBorderColor, getCategoryColor } from '../utils/categories'
+import { applyPriceMask, parseMaskedPrice } from '../utils/priceUtils'
 import PlusIcon from './PlusIcon'
 import SimplePlusIcon from './SimplePlusIcon'
 import RemoveIcon from './RemoveIcon'
@@ -58,7 +59,8 @@ function AddProductModal({ onAddProduct, onClose }) {
   }
 
   const handleCategorySelect = (categoryId) => {
-    onAddProduct(productName, quantity, categoryId, price)
+    const numericPrice = parseMaskedPrice(price)
+    onAddProduct(productName, quantity, categoryId, numericPrice)
   }
 
   const goBackToProduct = () => {
@@ -154,11 +156,9 @@ function AddProductModal({ onAddProduct, onClose }) {
               <div className="relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">R$</span>
                 <input
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type="text"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={(e) => setPrice(applyPriceMask(e.target.value))}
                   placeholder="0,00"
                   className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue"
                 />
@@ -192,7 +192,7 @@ function AddProductModal({ onAddProduct, onClose }) {
           /* Step 2: Category Selection */
           <div className="p-4">
             <p className="text-sm text-gray-600 mb-4">
-              Produto: <strong>{productName}</strong> (Qtd: {quantity}) {price && `• R$ ${parseFloat(price).toFixed(2)}`}
+              Produto: <strong>{productName}</strong> (Qtd: {quantity}) {price && `• R$ ${price}`}
             </p>
             
             <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">

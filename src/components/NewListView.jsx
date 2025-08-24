@@ -7,6 +7,7 @@ import ImportIcon from './ImportIcon'
 import WhatsAppIcon from './icons/WhatsAppIcon'
 import { normalizeProductText } from '../utils/textUtils'
 import { getCategoryById, CATEGORIES } from '../utils/categories'
+import { formatPrice, parsePrice } from '../utils/priceUtils'
 
 function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
   const [selectedProducts, setSelectedProducts] = useState(new Map())
@@ -151,7 +152,7 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
                   <div className="flex flex-col">
                     <div className="font-semibold">{product.name}</div>
                     {product.suggestedPrice > 0 && (
-                      <div className="text-xs text-gray-600">R$ {product.suggestedPrice.toFixed(2)}</div>
+                      <div className="text-xs text-gray-600">{formatPrice(product.suggestedPrice)}</div>
                     )}
                   </div>
                   <div className="text-white text-sm bg-slate-500 px-2 py-1 rounded-full font-semibold min-w-6 text-center shadow-sm">
@@ -377,7 +378,7 @@ function BulkImportModal({ onImport, onClose }) {
       if (csvWithPriceMatch) {
         const name = normalizeProductText(csvWithPriceMatch[1].trim())
         const quantity = parseInt(csvWithPriceMatch[2]) || 1
-        const price = parseFloat(csvWithPriceMatch[3].replace(',', '.')) || 0
+        const price = parsePrice(csvWithPriceMatch[3]) || 0
         if (name) {
           products.push({ name, quantity, price })
         }
@@ -548,7 +549,7 @@ Açúcar
                     <div className="flex flex-col">
                       <span className="text-sm text-gray-800">{product.name}</span>
                       {product.price > 0 && (
-                        <span className="text-xs text-gray-600">R$ {product.price.toFixed(2)}</span>
+                        <span className="text-xs text-gray-600">{formatPrice(product.price)}</span>
                       )}
                     </div>
                     <span className="text-xs bg-blue-200 px-2 py-1 rounded text-blue-800">
@@ -696,7 +697,7 @@ function WhatsAppImportModal({ onImport, onClose }) {
             quantity = parseInt(qtyMatch[1]) || 1
           }
           if (priceMatch) {
-            price = parseFloat(priceMatch[1].replace(',', '.')) || 0
+            price = parsePrice(priceMatch[1]) || 0
           }
         }
         // Formato: "produto, quantidade" (ex: "arroz, 2")
@@ -721,7 +722,7 @@ function WhatsAppImportModal({ onImport, onClose }) {
             quantity = parseInt(qtyMatch[1]) || 1
           }
           if (priceMatch) {
-            price = parseFloat(priceMatch[1].replace(',', '.')) || 0
+            price = parsePrice(priceMatch[1]) || 0
           }
         }
         // Formato: "produto - quantidade" (ex: "arroz - 2")
@@ -855,7 +856,7 @@ Ou use qualquer formato:
                       <div className="flex flex-col">
                         <span className="text-sm text-gray-800">{product.name}</span>
                         {product.price > 0 && (
-                          <span className="text-xs text-gray-600">R$ {product.price.toFixed(2)}</span>
+                          <span className="text-xs text-gray-600">{formatPrice(product.price)}</span>
                         )}
                       </div>
                       {product.category !== 'geral' && (
