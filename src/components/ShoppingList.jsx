@@ -8,6 +8,7 @@ import HistoryIcon from './HistoryIcon'
 import CheckmarkIcon from './CheckmarkIcon'
 import TrashIcon from './TrashIcon'
 import HelpIcon from './HelpIcon'
+import WhatsAppIcon from './icons/WhatsAppIcon'
 import { getCategoryById, getCategoriesWithItems, getCategoryColor } from '../utils/categories'
 
 function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, onClearList, onShowTour, onFinishCart, onShowHistory }) {
@@ -37,6 +38,29 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
   const handleClearList = () => {
     onClearList()
     setShowConfirmDialog(false)
+  }
+
+  const handleShareWhatsApp = () => {
+    if (currentList.length === 0) {
+      alert('Sua lista está vazia. Adicione alguns produtos antes de compartilhar.')
+      return
+    }
+
+    // Gerar texto da lista no formato importável
+    const listText = currentList
+      .map(item => {
+        const category = getCategoryById(item.category || 'geral')
+        return `${item.name}, ${item.quantity}`
+      })
+      .join('\n')
+
+    const message = `📋 *Lista de Compras - SwipeCart*\n\n${listText}\n\n💡 _Cole este texto no campo "Importar" do SwipeCart para adicionar todos os itens à sua lista!_`
+    
+    // URL do WhatsApp para compartilhar
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`
+    
+    // Abrir WhatsApp
+    window.open(whatsappUrl, '_blank')
   }
 
   return (
@@ -199,6 +223,17 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
           </div>
         )}
       </main>
+
+      {/* Botão WhatsApp flutuante - só aparece se há itens na lista */}
+      {currentList.length > 0 && (
+        <button
+          onClick={handleShareWhatsApp}
+          className="fixed bottom-24 right-6 w-12 h-12 bg-green-500 text-white rounded-full shadow-lg hover:shadow-xl hover:bg-green-600 flex items-center justify-center transition-all duration-300 z-40"
+          title="Compartilhar no WhatsApp"
+        >
+          <WhatsAppIcon className="w-5 h-5" />
+        </button>
+      )}
 
       <FloatingAddButton onAddProduct={onAddProduct} />
 
