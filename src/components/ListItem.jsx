@@ -2,40 +2,6 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import RemoveIcon from './RemoveIcon'
 import CheckmarkIcon from './CheckmarkIcon'
 
-// Função para sugerir unidades baseada no nome do produto
-function getQuantityUnit(productName, quantity) {
-  const name = productName.toLowerCase()
-  
-  // Produtos por peso (kg/g)
-  if (name.includes('carne') || name.includes('frango') || name.includes('peixe') || 
-      name.includes('linguiça') || name.includes('bacon') || name.includes('presunto') ||
-      name.includes('queijo') || name.includes('mortadela')) {
-    return quantity > 1 ? 'kg' : 'g'
-  }
-  
-  // Produtos por litro
-  if (name.includes('leite') || name.includes('refrigerante') || name.includes('suco') || 
-      name.includes('água') || name.includes('cerveja') || name.includes('vinho') ||
-      name.includes('detergente') || name.includes('amaciante')) {
-    return quantity > 1 ? 'L' : 'ml'
-  }
-  
-  // Produtos por unidade (frutas, verduras, pães)
-  if (name.includes('banana') || name.includes('maçã') || name.includes('laranja') ||
-      name.includes('alface') || name.includes('tomate') || name.includes('cebola') ||
-      name.includes('pão') || name.includes('ovo') || name.includes('batata')) {
-    return quantity === 1 ? 'un' : 'uns'
-  }
-  
-  // Produtos por pacote
-  if (name.includes('macarrão') || name.includes('arroz') || name.includes('feijão') ||
-      name.includes('açúcar') || name.includes('sal') || name.includes('café') ||
-      name.includes('biscoito') || name.includes('bolacha')) {
-    return quantity === 1 ? 'pct' : 'pcts'
-  }
-  
-  return null // Sem sugestão de unidade
-}
 
 function ListItem({ item, onUpdateStatus, statusType }) {
   const [isDragging, setIsDragging] = useState(false)
@@ -298,16 +264,11 @@ function ListItem({ item, onUpdateStatus, statusType }) {
           </div>
         </div>
         
-        <div className="flex items-center gap-3 ml-4">
-          <div className="flex flex-col items-end">
+        <div className="flex items-center gap-3 ml-4 flex-shrink-0">
+          <div className="flex flex-col items-end min-w-0">
             <div className="item-quantity text-white text-sm bg-slate-600 px-2.5 py-1.5 rounded-full font-bold text-center whitespace-nowrap">
               {item.quantity}
             </div>
-            {getQuantityUnit(item.name, item.quantity) && (
-              <span className="text-xs text-gray-500 mt-1">
-                {getQuantityUnit(item.name, item.quantity)}
-              </span>
-            )}
           </div>
           
           {item.status === 'pending' && (
