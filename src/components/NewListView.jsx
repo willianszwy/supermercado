@@ -1,23 +1,38 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import RemoveIcon from './RemoveIcon'
 import TrashIcon from './TrashIcon'
 import PlusIcon from './PlusIcon'
 import SimplePlusIcon from './SimplePlusIcon'
 import ImportIcon from './ImportIcon'
 import WhatsAppIcon from './icons/WhatsAppIcon'
+import HelpIcon from './HelpIcon'
+import NewListTour from './NewListTour'
 import { normalizeProductText } from '../utils/textUtils'
 import { getCategoryById, CATEGORIES } from '../utils/categories'
 import { formatPrice, parsePrice } from '../utils/priceUtils'
+import { useLocalStorage } from '../hooks/useLocalStorage'
 
 function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
   const [selectedProducts, setSelectedProducts] = useState(new Map())
   const [showAddModal, setShowAddModal] = useState(false)
   const [showBulkImportModal, setShowBulkImportModal] = useState(false)
   const [showWhatsAppImportModal, setShowWhatsAppImportModal] = useState(false)
+  const [showTour, setShowTour] = useState(false)
+  const [hasSeenNewListTour, setHasSeenNewListTour] = useLocalStorage('hasSeenNewListTour', false)
 
   const sortedProducts = [...allProducts].sort((a, b) => 
     new Date(b.lastUsed) - new Date(a.lastUsed)
   )
+
+  // Mostrar tour automaticamente na primeira visita se há produtos anteriores
+  useEffect(() => {
+    if (!hasSeenNewListTour && allProducts.length > 0) {
+      const timer = setTimeout(() => {
+        setShowTour(true)
+      }, 1000) // Delay para carregar a tela
+      return () => clearTimeout(timer)
+    }
+  }, [hasSeenNewListTour, allProducts.length])
 
   const toggleProduct = (productName, lastQuantity, category, suggestedPrice) => {
     setSelectedProducts(prev => {
@@ -97,17 +112,33 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
     setShowWhatsAppImportModal(false)
   }
 
+  const handleShowTour = () => {
+    setShowTour(true)
+  }
+
+  const handleCloseTour = () => {
+    setShowTour(false)
+    setHasSeenNewListTour(true)
+  }
+
   return (
     <>
       <header className="py-5 border-b-2 border-primary-blue mb-5">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-3">
             <button onClick={onBack} className="btn-secondary">
               ← Voltar
             </button>
             <h2 className="text-2xl font-bold text-primary-blue">
               Nova Lista
             </h2>
+            <button
+              onClick={handleShowTour}
+              className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 flex items-center justify-center text-sm transition-colors"
+              title="Tutorial - Como criar listas"
+            >
+              <HelpIcon className="w-4 h-4" />
+            </button>
           </div>
           <button
             onClick={() => setShowBulkImportModal(true)}
@@ -252,6 +283,12 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
           onClose={() => setShowWhatsAppImportModal(false)}
         />
       )}
+
+      {/* Tour Guide */}
+      <NewListTour 
+        isOpen={showTour} 
+        onClose={handleCloseTour} 
+      />
     </>
   )
 }
