@@ -160,13 +160,23 @@ function ListItem({ item, onUpdateStatus, statusType }) {
 
   // Add global event listeners when dragging starts
   useEffect(() => {
-    if (isDragging) {
+    if (!isDragging) return
+
+    const cleanup = () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('touchmove', handleTouchMove)
+      document.removeEventListener('touchend', handleTouchEnd)
+    }
+
+    try {
       // Mouse events (sempre funcionam)
-      document.addEventListener('mousemove', handleMouseMove)
-      document.addEventListener('mouseup', handleMouseUp)
+      document.addEventListener('mousemove', handleMouseMove, { passive: true })
+      document.addEventListener('mouseup', handleMouseUp, { passive: true })
       
       // Keyboard events
-      document.addEventListener('keydown', handleKeyDown)
+      document.addEventListener('keydown', handleKeyDown, { passive: true })
       
       // Touch events com configuração específica
       const touchMoveOptions = {
@@ -174,23 +184,17 @@ function ListItem({ item, onUpdateStatus, statusType }) {
         capture: false
       }
       
-      try {
-        document.addEventListener('touchmove', handleTouchMove, touchMoveOptions)
-        document.addEventListener('touchend', handleTouchEnd, { passive: true })
-      } catch (error) {
-        // Fallback se não conseguir registrar com passive: false
-        document.addEventListener('touchmove', handleTouchMove)
-        document.addEventListener('touchend', handleTouchEnd)
-      }
-      
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove)
-        document.removeEventListener('mouseup', handleMouseUp)
-        document.removeEventListener('keydown', handleKeyDown)
-        document.removeEventListener('touchmove', handleTouchMove)
-        document.removeEventListener('touchend', handleTouchEnd)
-      }
+      document.addEventListener('touchmove', handleTouchMove, touchMoveOptions)
+      document.addEventListener('touchend', handleTouchEnd, { passive: true })
+    } catch (error) {
+      // Fallback se não conseguir registrar com passive: false
+      console.warn('Failed to register touch events with passive: false', error)
+      document.addEventListener('touchmove', handleTouchMove)
+      document.addEventListener('touchend', handleTouchEnd)
     }
+    
+    // Cleanup function
+    return cleanup
   }, [isDragging, handleMouseMove, handleMouseUp, handleKeyDown, handleTouchMove, handleTouchEnd])
 
   const getDragClasses = () => {

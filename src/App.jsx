@@ -3,8 +3,10 @@ import ShoppingList from './components/ShoppingList'
 import NewListView from './components/NewListView'
 import HistoryView from './components/HistoryView'
 import Tour from './components/Tour'
+import ErrorBoundary from './components/ErrorBoundary'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { normalizeProductText } from './utils/textUtils'
+import { generateUniqueId } from './utils/idUtils'
 
 function App() {
   const [currentView, setCurrentView] = useState('main')
@@ -19,13 +21,13 @@ function App() {
   useEffect(() => {
     if (!hasSeenTour && currentView === 'main' && currentList.length === 0) {
       const exampleList = [
-        { id: Date.now() + 1, name: 'Banana', quantity: 6, category: 'hortifruti', status: 'pending', addedAt: new Date().toISOString(), price: 3.99 },
-        { id: Date.now() + 2, name: 'Leite Integral', quantity: 2, category: 'laticinios', status: 'pending', addedAt: new Date().toISOString(), price: 5.49 },
-        { id: Date.now() + 3, name: 'Pão de Forma', quantity: 1, category: 'padaria', status: 'pending', addedAt: new Date().toISOString(), price: 4.89 },
-        { id: Date.now() + 4, name: 'Peito de Frango', quantity: 1, category: 'acougue', status: 'pending', addedAt: new Date().toISOString(), price: 14.90 },
-        { id: Date.now() + 5, name: 'Arroz', quantity: 1, category: 'mercearia', status: 'pending', addedAt: new Date().toISOString(), price: 7.25 },
-        { id: Date.now() + 6, name: 'Detergente', quantity: 1, category: 'limpeza', status: 'completed', addedAt: new Date().toISOString(), price: 2.99 },
-        { id: Date.now() + 7, name: 'Shampoo', quantity: 1, category: 'higiene', status: 'missing', addedAt: new Date().toISOString(), price: 12.50 }
+        { id: generateUniqueId(), name: 'Banana', quantity: 6, category: 'hortifruti', status: 'pending', addedAt: new Date().toISOString(), price: 3.99 },
+        { id: generateUniqueId(), name: 'Leite Integral', quantity: 2, category: 'laticinios', status: 'pending', addedAt: new Date().toISOString(), price: 5.49 },
+        { id: generateUniqueId(), name: 'Pão de Forma', quantity: 1, category: 'padaria', status: 'pending', addedAt: new Date().toISOString(), price: 4.89 },
+        { id: generateUniqueId(), name: 'Peito de Frango', quantity: 1, category: 'acougue', status: 'pending', addedAt: new Date().toISOString(), price: 14.90 },
+        { id: generateUniqueId(), name: 'Arroz', quantity: 1, category: 'mercearia', status: 'pending', addedAt: new Date().toISOString(), price: 7.25 },
+        { id: generateUniqueId(), name: 'Detergente', quantity: 1, category: 'limpeza', status: 'completed', addedAt: new Date().toISOString(), price: 2.99 },
+        { id: generateUniqueId(), name: 'Shampoo', quantity: 1, category: 'higiene', status: 'missing', addedAt: new Date().toISOString(), price: 12.50 }
       ]
       
       setCurrentList(exampleList)
@@ -58,7 +60,7 @@ function App() {
     if (!normalizedName) return // Não adiciona se o nome estiver vazio após normalização
     
     const product = {
-      id: Date.now() + Math.random(),
+      id: generateUniqueId(),
       name: normalizedName,
       quantity,
       category,
@@ -102,21 +104,14 @@ function App() {
       
       // Incrementar contador de interações com gestos
       if (status === 'completed' || status === 'missing') {
-        setGestureInteractionCount(prev => {
-          const newCount = prev + 1
-          // Esconder hints após 5 interações bem-sucedidas
-          if (newCount >= 5) {
-            setShowGestureHints(false)
-          }
-          return newCount
-        })
+        setGestureInteractionCount(prev => prev + 1)
       }
     }
   }
 
   const createNewList = (selectedProducts) => {
     const newList = selectedProducts.map(({ name, quantity, category, price }) => ({
-      id: Date.now() + Math.random(),
+      id: generateUniqueId(),
       name,
       quantity,
       category: category || 'geral',
@@ -167,7 +162,7 @@ function App() {
     if (currentList.length === 0) return
 
     const finishedCart = {
-      id: Date.now() + Math.random(),
+      id: generateUniqueId(),
       items: [...currentList],
       finishedAt: new Date().toISOString(),
       totalItems: currentList.length,
@@ -183,7 +178,7 @@ function App() {
     // Restaura o carrinho como uma nova lista
     const restoredItems = cart.items.map(item => ({
       ...item,
-      id: Date.now() + Math.random(), // Novo ID
+      id: generateUniqueId(), // Novo ID
       status: 'pending', // Reset status
       addedAt: new Date().toISOString()
     }))
@@ -193,41 +188,51 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-md mx-auto px-5">
-        {currentView === 'main' ? (
-          <ShoppingList
-            currentList={currentList}
-            onAddProduct={addProduct}
-            onUpdateStatus={updateProductStatus}
-            onNewList={() => setCurrentView('newList')}
-            onClearList={clearList}
-            onShowTour={handleShowTour}
-            onFinishCart={finishCart}
-            onShowHistory={() => setCurrentView('history')}
-          />
-        ) : currentView === 'newList' ? (
-          <NewListView
-            allProducts={allProducts}
-            onCreateList={createNewList}
-            onBack={() => setCurrentView('main')}
-            onRemoveProduct={removeProduct}
-          />
-        ) : currentView === 'history' ? (
-          <HistoryView
-            cartHistory={cartHistory}
-            onBack={() => setCurrentView('main')}
-            onRestoreCart={restoreCart}
-          />
-        ) : null}
-        
-        {/* Tour Guide */}
-        <Tour 
-          isOpen={showTour} 
-          onClose={handleCloseTour} 
-        />
+    <ErrorBoundary>
+      <div className="min-h-screen bg-white">
+        <div className="max-w-md mx-auto px-5">
+          {currentView === 'main' ? (
+            <ErrorBoundary>
+              <ShoppingList
+                currentList={currentList}
+                onAddProduct={addProduct}
+                onUpdateStatus={updateProductStatus}
+                onNewList={() => setCurrentView('newList')}
+                onClearList={clearList}
+                onShowTour={handleShowTour}
+                onFinishCart={finishCart}
+                onShowHistory={() => setCurrentView('history')}
+              />
+            </ErrorBoundary>
+          ) : currentView === 'newList' ? (
+            <ErrorBoundary>
+              <NewListView
+                allProducts={allProducts}
+                onCreateList={createNewList}
+                onBack={() => setCurrentView('main')}
+                onRemoveProduct={removeProduct}
+              />
+            </ErrorBoundary>
+          ) : currentView === 'history' ? (
+            <ErrorBoundary>
+              <HistoryView
+                cartHistory={cartHistory}
+                onBack={() => setCurrentView('main')}
+                onRestoreCart={restoreCart}
+              />
+            </ErrorBoundary>
+          ) : null}
+          
+          {/* Tour Guide */}
+          <ErrorBoundary>
+            <Tour 
+              isOpen={showTour} 
+              onClose={handleCloseTour} 
+            />
+          </ErrorBoundary>
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   )
 }
 
