@@ -373,35 +373,58 @@ function BulkImportModal({ onImport, onClose }) {
     const products = []
 
     for (const line of lines) {
+      let cleanLine = line.trim()
+      
+      // Ignorar linhas que claramente não são produtos
+      if (!cleanLine ||
+          cleanLine.length < 2 ||
+          cleanLine.length > 60 ||
+          cleanLine.includes('Lista de Compras') ||
+          cleanLine.includes('Estimativa Total') ||
+          cleanLine.includes('Valores sugeridos') ||
+          cleanLine.match(/^[📝✨🔹💰\*\-\s]*$/) ||
+          cleanLine.match(/^\*.*\*$/) ||
+          cleanLine.match(/^_.*_$/) ||
+          cleanLine.match(/^https?:\/\//i) ||
+          cleanLine.match(/^\d{4}-\d{2}-\d{2}/) ||
+          cleanLine.match(/^\w+@\w+\.\w+/) ||
+          cleanLine.split(' ').length > 8) {
+        continue
+      }
+
       // Try CSV format with price: "product name, quantity, price"
-      const csvWithPriceMatch = line.match(/^([^,]+),\s*(\d+),\s*([\d.,]+)$/)
+      const csvWithPriceMatch = cleanLine.match(/^([^,]+),\s*(\d+),\s*([\d.,]+)$/)
       if (csvWithPriceMatch) {
         const name = normalizeProductText(csvWithPriceMatch[1].trim())
         const quantity = parseInt(csvWithPriceMatch[2]) || 1
         const price = parsePrice(csvWithPriceMatch[3]) || 0
-        if (name) {
+        if (name && name.length > 1 && name.length < 40 && !name.match(/^[0-9\s\$\.,]+$/)) {
           products.push({ name, quantity, price })
         }
         continue
       }
 
       // Try CSV format: "product name, quantity"
-      const csvMatch = line.match(/^([^,]+),\s*(\d+)$/)
+      const csvMatch = cleanLine.match(/^([^,]+),\s*(\d+)$/)
       if (csvMatch) {
         const name = normalizeProductText(csvMatch[1].trim())
         const quantity = parseInt(csvMatch[2]) || 1
-        if (name) {
+        if (name && name.length > 1 && name.length < 40 && !name.match(/^[0-9\s\$\.,]+$/)) {
           products.push({ name, quantity, price: 0 })
         }
         continue
       }
 
       // Try simple format: "quantity product name" or just "product name"
-      const simpleMatch = line.match(/^(\d+)?\s*(.+)$/)
-      if (simpleMatch) {
+      const simpleMatch = cleanLine.match(/^(\d+)?\s*(.+)$/)
+      if (simpleMatch && cleanLine.match(/[a-záéíóúàèìòù]/i)) {
         const quantity = parseInt(simpleMatch[1]) || 1
         const name = normalizeProductText(simpleMatch[2].trim())
-        if (name) {
+        if (name && 
+            name.length > 1 && 
+            name.length < 40 && 
+            !name.match(/^[0-9\s\$\.,]+$/) &&
+            name.split(' ').length <= 5) {
           products.push({ name, quantity, price: 0 })
         }
       }
@@ -631,10 +654,19 @@ function WhatsAppImportModal({ onImport, onClose }) {
 
       if (!cleanLine) continue
 
-      // Ignorar linhas de cabeçalho/formatação do SwipeCart
+      // Ignorar linhas de cabeçalho/formatação do SwipeCart e outros textos comuns
       if (cleanLine.includes('Lista de Compras - SwipeCart') || 
           cleanLine.includes('Importe esta lista no SwipeCart') ||
-          cleanLine.match(/^[📝✨🔹\*\-\s]*$/)) {
+          cleanLine.includes('Valores sugeridos para estimativa') ||
+          cleanLine.includes('Estimativa Total') ||
+          cleanLine.includes('Generated with') ||
+          cleanLine.includes('Claude Code') ||
+          cleanLine.match(/^[📝✨🔹💰\*\-\s]*$/) ||
+          cleanLine.match(/^\*.*\*$/) ||  // Linhas entre asteriscos
+          cleanLine.match(/^_.*_$/) ||    // Linhas entre underlines
+          cleanLine.match(/^R\$\s*[\d,.]+ ?\*?$/) || // Apenas valores monetários
+          cleanLine.match(/^Total:?/i) ||
+          cleanLine.match(/^Estimativa/i)) {
         continue
       }
 
@@ -659,8 +691,9 @@ function WhatsAppImportModal({ onImport, onClose }) {
 
       // Ignorar linhas que são só formatação/separadores
       if (cleanLine.match(/^[\s\*\-\=\_\~\`\#\+\.\!\?]*$/) ||
-          cleanLine.match(/^[📝✨🔹🛒💚❤️🎉\s]*$/) ||
-          cleanLine.length < 2) {
+          cleanLine.match(/^[📝✨🔹🛒💚❤️🎉💰\s]*$/) ||
+          cleanLine.length < 2 ||
+          cleanLine.length > 50) { // Muito longo provavelmente não é produto
         continue
       }
 
@@ -674,6 +707,18 @@ function WhatsAppImportModal({ onImport, onClose }) {
 
       // Se a linha não parece ser um produto, pular
       if (!cleanLine.match(/[a-záéíóúàèìòù]/i)) {
+        continue
+      }
+      
+      // Verificações adicionais para evitar texto de formatação
+      if (cleanLine.match(/^https?:\/\//i) || // URLs
+          cleanLine.match(/^\d{4}-\d{2}-\d{2}/) || // Datas
+          cleanLine.match(/^\d+:\d+/) || // Horários
+          cleanLine.match(/^[A-Z\s]+:$/) || // Texto em maiúsculas seguido de ":"
+          cleanLine.match(/^\d+\/\d+\/\d+/) || // Datas formato brasileiro
+          cleanLine.match(/^\w+@\w+\.\w+/) || // Emails
+          cleanLine.match(/^Co-Authored/i) || // Texto de commit
+          cleanLine.split(' ').length > 8) { // Muitas palavras, provavelmente não é produto
         continue
       }
 
@@ -743,7 +788,14 @@ function WhatsAppImportModal({ onImport, onClose }) {
       // Limpa e normaliza o nome
       if (name) {
         name = normalizeProductText(name.trim())
-        if (name && name.length > 1) { // Evita nomes muito pequenos
+        
+        // Validações finais antes de adicionar o produto
+        if (name && 
+            name.length > 1 && 
+            name.length < 40 && // Nome não pode ser muito longo
+            !name.match(/^[0-9\s\$\.,]+$/) && // Não pode ser só números/símbolos
+            !name.match(/^\d+[\.,]\d+$/) && // Não pode ser só um número decimal
+            name.split(' ').length <= 5) { // Máximo 5 palavras
           products.push({ name, quantity, category: currentCategory, price })
         }
       }
@@ -834,11 +886,13 @@ function WhatsAppImportModal({ onImport, onClose }) {
               onChange={(e) => setImportText(e.target.value)}
               placeholder="Cole sua lista compartilhada do SwipeCart aqui...
 
-Ou use qualquer formato:
+Formatos aceitos:
 • Banana, 6, 2.50
-• 2 kg Carne
+• 2 Carne
 • Arroz - 1 - R$ 8,50
-• Leite"
+• Leite
+• Açúcar
+• 3 Maçã"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue h-32 resize-none text-sm"
             />
           </div>
