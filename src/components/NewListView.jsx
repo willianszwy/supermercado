@@ -15,13 +15,13 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
     new Date(b.lastUsed) - new Date(a.lastUsed)
   )
 
-  const toggleProduct = (productName, lastQuantity) => {
+  const toggleProduct = (productName, lastQuantity, category) => {
     setSelectedProducts(prev => {
       const newMap = new Map(prev)
       if (newMap.has(productName)) {
         newMap.delete(productName)
       } else {
-        newMap.set(productName, { name: productName, quantity: lastQuantity })
+        newMap.set(productName, { name: productName, quantity: lastQuantity, category })
       }
       return newMap
     })
@@ -31,7 +31,8 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
     setSelectedProducts(prev => {
       const newMap = new Map(prev)
       if (newMap.has(productName)) {
-        newMap.set(productName, { name: productName, quantity })
+        const existingProduct = newMap.get(productName)
+        newMap.set(productName, { ...existingProduct, quantity })
       }
       return newMap
     })
@@ -115,7 +116,7 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
                   ? 'border-primary-green bg-green-50'
                   : 'border-gray-200 hover:border-primary-blue'
               }`}
-              onClick={() => !selectedProducts.has(product.name) && toggleProduct(product.name, product.lastQuantity)}
+              onClick={() => !selectedProducts.has(product.name) && toggleProduct(product.name, product.lastQuantity, product.category)}
             >
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
