@@ -217,6 +217,9 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
             </button>
           </div>
         )}
+
+        {/* Espaçamento para evitar sobreposição com FABs */}
+        <div className="h-24"></div>
       </main>
 
       {/* Botão WhatsApp flutuante - só aparece se há itens na lista */}
