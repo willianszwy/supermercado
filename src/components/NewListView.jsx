@@ -766,6 +766,31 @@ function WhatsAppImportModal({ onImport, onClose }) {
         name = quantityFirst[2].trim()
       }
       
+      // Formato: "produto, quantidade - preço" (ex: "Ovo, 1 - R$ 25,00") - formato específico do SwipeCart
+      else if (cleanLine.includes(',') && cleanLine.includes(' - ')) {
+        const commaIndex = cleanLine.indexOf(',')
+        const dashIndex = cleanLine.indexOf(' - ')
+        
+        if (commaIndex < dashIndex) {
+          const afterDash = cleanLine.substring(dashIndex + 3).trim()
+          // Verifica se após o " - " há um preço (contém R$, $ ou padrão numérico)
+          if (afterDash.match(/R?\$?\s*[\d.,]+/) || afterDash.match(/^[\d.,]+$/)) {
+            name = cleanLine.substring(0, commaIndex).trim()
+            const qtyPart = cleanLine.substring(commaIndex + 1, dashIndex).trim()
+            const pricePart = afterDash
+            
+            const qtyMatch = qtyPart.match(/(\d+)/)
+            const priceMatch = pricePart.match(/R?\$?\s*([\d.,]+)/)
+            
+            if (qtyMatch) {
+              quantity = parseInt(qtyMatch[1]) || 1
+            }
+            if (priceMatch) {
+              price = parsePrice(priceMatch[1]) || 0
+            }
+          }
+        }
+      }
       // Formato: "produto, quantidade, preço" (ex: "arroz, 2, 5.50")
       else if (cleanLine.includes(',')) {
         const parts = cleanLine.split(',')
