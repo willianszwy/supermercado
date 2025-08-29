@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { normalizeProductText } from '../utils/textUtils'
 import { getCategoriesList, CATEGORIES, getCategoryLightColor, getCategoryBorderColor, getCategoryColor } from '../utils/categories'
 import { applyPriceMask, parseMaskedPrice } from '../utils/priceUtils'
@@ -6,8 +6,9 @@ import PlusIcon from './PlusIcon'
 import SimplePlusIcon from './SimplePlusIcon'
 import RemoveIcon from './RemoveIcon'
 
-function FloatingAddButton({ onAddProduct }) {
+function FloatingAddButton({ onAddProduct, editingItem, onEditProduct, onCancelEdit }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const isEditMode = !!editingItem
 
   const openModal = () => {
     setIsModalOpen(true)
@@ -15,39 +16,57 @@ function FloatingAddButton({ onAddProduct }) {
 
   const closeModal = () => {
     setIsModalOpen(false)
+    if (isEditMode && onCancelEdit) {
+      onCancelEdit()
+    }
   }
 
   const handleAddProduct = (name, quantity, category, price) => {
-    onAddProduct(name, quantity, category, price)
+    if (isEditMode && onEditProduct && editingItem) {
+      onEditProduct(editingItem.id, { name, quantity, category, price })
+    } else {
+      onAddProduct(name, quantity, category, price)
+    }
     closeModal()
   }
 
+  // Abrir modal automaticamente quando entra em modo de edição
+  React.useEffect(() => {
+    if (isEditMode) {
+      setIsModalOpen(true)
+    }
+  }, [isEditMode])
+
   return (
     <>
-      {/* Floating Action Button */}
-      <button
-        onClick={openModal}
-        className="fab-optimized bg-primary-green text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center text-2xl font-bold hover:bg-primary-green-dark touch-target-expanded"
-        data-tour="add-button"
-      >
-        <PlusIcon className="w-8 h-8" />
-      </button>
+      {/* Floating Action Button - hidden in edit mode */}
+      {!isEditMode && (
+        <button
+          onClick={openModal}
+          className="fab-optimized bg-primary-green text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center text-2xl font-bold hover:bg-primary-green-dark touch-target-expanded"
+          data-tour="add-button"
+        >
+          <PlusIcon className="w-8 h-8" />
+        </button>
+      )}
 
       {/* Modal */}
       {isModalOpen && (
         <AddProductModal
           onAddProduct={handleAddProduct}
           onClose={closeModal}
+          isEditMode={isEditMode}
+          editingItem={editingItem}
         />
       )}
     </>
   )
 }
 
-function AddProductModal({ onAddProduct, onClose }) {
-  const [productName, setProductName] = useState('')
-  const [quantity, setQuantity] = useState(1)
-  const [price, setPrice] = useState('')
+function AddProductModal({ onAddProduct, onClose, isEditMode = false, editingItem = null }) {
+  const [productName, setProductName] = useState(isEditMode && editingItem ? editingItem.name : '')
+  const [quantity, setQuantity] = useState(isEditMode && editingItem ? editingItem.quantity : 1)
+  const [price, setPrice] = useState(isEditMode && editingItem && editingItem.price ? applyPriceMask(editingItem.price.toString()) : '')
   const [step, setStep] = useState(1) // 1: produto e quantidade, 2: categoria
 
   const handleFirstStep = (e) => {
@@ -93,7 +112,9 @@ function AddProductModal({ onAddProduct, onClose }) {
               </button>
             )}
             <h3 className="text-lg font-semibold text-gray-800">
-              {step === 1 ? 'Adicionar Produto' : 'Escolher Categoria'}
+              {step === 1 
+                ? (isEditMode ? 'Editar Produto' : 'Adicionar Produto') 
+                : 'Escolher Categoria'}
             </h3>
           </div>
           <button
@@ -184,7 +205,7 @@ function AddProductModal({ onAddProduct, onClose }) {
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                Próximo
+                {isEditMode ? 'Continuar' : 'Próximo'}
               </button>
             </div>
           </form>
@@ -196,22 +217,28 @@ function AddProductModal({ onAddProduct, onClose }) {
             </p>
             
             <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-              {categories.map(category => (
-                <button
-                  key={category.id}
-                  onClick={() => handleCategorySelect(category.id)}
-                  className={`p-4 rounded-lg border-2 text-center transition-all hover:scale-105 ${
-                    getCategoryLightColor(category.id)
-                  } ${
-                    getCategoryBorderColor(category.id)
-                  } hover:shadow-md`}
-                >
-                  <div className={`w-8 h-8 rounded-full mx-auto mb-2 ${getCategoryColor(category.id)}`}></div>
-                  <div className="text-sm font-medium text-gray-800">
-                    {category.name}
-                  </div>
-                </button>
-              ))}
+              {categories.map(category => {
+                const isCurrentCategory = isEditMode && editingItem && editingItem.category === category.id
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => handleCategorySelect(category.id)}
+                    className={`p-4 rounded-lg border-2 text-center transition-all hover:scale-105 ${
+                      getCategoryLightColor(category.id)
+                    } ${
+                      getCategoryBorderColor(category.id)
+                    } hover:shadow-md ${
+                      isCurrentCategory ? 'ring-2 ring-blue-500 ring-opacity-75' : ''
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-full mx-auto mb-2 ${getCategoryColor(category.id)}`}></div>
+                    <div className="text-sm font-medium text-gray-800">
+                      {category.name}
+                      {isCurrentCategory && <div className="text-xs text-blue-600 mt-1">• Atual</div>}
+                    </div>
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}

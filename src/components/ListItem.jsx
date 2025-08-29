@@ -4,17 +4,48 @@ import CheckmarkIcon from './CheckmarkIcon'
 import { formatPrice } from '../utils/priceUtils'
 
 
-function ListItem({ item, onUpdateStatus, statusType }) {
+function ListItem({ item, onUpdateStatus, statusType, onEdit }) {
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState(0)
   const [dragDirection, setDragDirection] = useState(null) // 'left' | 'right' | null
   const [showPreview, setShowPreview] = useState(false)
+  const [isLongPressing, setIsLongPressing] = useState(false)
   const startPosRef = useRef(0)
+  const longPressTimerRef = useRef(null)
+  const longPressStartTimeRef = useRef(0)
   const dragThreshold = 80 // Aumentado para melhor feedback
+  const longPressDelay = 2000 // 2 segundos para long press
+
+  const startLongPressTimer = () => {
+    if (item.status !== 'pending' || !onEdit) return
+    
+    longPressStartTimeRef.current = Date.now()
+    setIsLongPressing(true)
+    
+    longPressTimerRef.current = setTimeout(() => {
+      // Adicionar feedback háptico se disponível
+      if (navigator.vibrate) {
+        navigator.vibrate(50)
+      }
+      setIsLongPressing(false)
+      onEdit(item)
+    }, longPressDelay)
+  }
+
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+    setIsLongPressing(false)
+  }
 
   const handleStart = (clientX) => {
     startPosRef.current = clientX
     setIsDragging(true)
+    
+    // Iniciar timer de long press apenas se não estiver arrastando ainda
+    startLongPressTimer()
   }
 
   // Pointer Events (mais moderno e confiável)
@@ -30,6 +61,11 @@ function ListItem({ item, onUpdateStatus, statusType }) {
     const offset = e.clientX - startPosRef.current
     setDragOffset(offset)
     
+    // Cancelar long press se houve movimento significativo
+    if (Math.abs(offset) > 10) {
+      cancelLongPress()
+    }
+    
     // Atualizar direção e preview baseado no offset
     if (Math.abs(offset) > 20) {
       const direction = offset > 0 ? 'right' : 'left'
@@ -43,6 +79,9 @@ function ListItem({ item, onUpdateStatus, statusType }) {
 
   const handlePointerUp = useCallback((e) => {
     if (!isDragging) return
+    
+    // Cancelar long press
+    cancelLongPress()
     
     // Liberar a captura do pointer
     e.currentTarget?.releasePointerCapture?.(e.pointerId)
@@ -74,6 +113,11 @@ function ListItem({ item, onUpdateStatus, statusType }) {
     const offset = e.clientX - startPosRef.current
     setDragOffset(offset)
     
+    // Cancelar long press se houve movimento significativo
+    if (Math.abs(offset) > 10) {
+      cancelLongPress()
+    }
+    
     // Atualizar direção e preview baseado no offset
     if (Math.abs(offset) > 20) { // Threshold mínimo para mostrar direção
       const direction = offset > 0 ? 'right' : 'left'
@@ -87,6 +131,9 @@ function ListItem({ item, onUpdateStatus, statusType }) {
 
   const handleMouseUp = useCallback(() => {
     if (!isDragging) return
+    
+    // Cancelar long press
+    cancelLongPress()
     
     if (Math.abs(dragOffset) > dragThreshold && item.status === 'pending') {
       if (dragOffset > 0) {
@@ -119,6 +166,11 @@ function ListItem({ item, onUpdateStatus, statusType }) {
     const offset = e.touches[0].clientX - startPosRef.current
     setDragOffset(offset)
     
+    // Cancelar long press se houve movimento significativo
+    if (Math.abs(offset) > 10) {
+      cancelLongPress()
+    }
+    
     // Atualizar direção e preview baseado no offset
     if (Math.abs(offset) > 20) { // Threshold mínimo para mostrar direção
       const direction = offset > 0 ? 'right' : 'left'
@@ -132,6 +184,9 @@ function ListItem({ item, onUpdateStatus, statusType }) {
 
   const handleTouchEnd = useCallback(() => {
     if (!isDragging) return
+    
+    // Cancelar long press
+    cancelLongPress()
     
     if (Math.abs(dragOffset) > dragThreshold && item.status === 'pending') {
       if (dragOffset > 0) {
@@ -150,13 +205,21 @@ function ListItem({ item, onUpdateStatus, statusType }) {
 
   // Cancelar gesto com Escape
   const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Escape' && isDragging) {
+    if (e.key === 'Escape' && (isDragging || isLongPressing)) {
+      cancelLongPress()
       setIsDragging(false)
       setDragOffset(0)
       setDragDirection(null)
       setShowPreview(false)
     }
-  }, [isDragging])
+  }, [isDragging, isLongPressing])
+
+  // Cleanup long press timer when component unmounts
+  useEffect(() => {
+    return () => {
+      cancelLongPress()
+    }
+  }, [])
 
   // Add global event listeners when dragging starts
   useEffect(() => {
@@ -223,7 +286,7 @@ function ListItem({ item, onUpdateStatus, statusType }) {
 
   return (
     <li
-      className={`item-card ${getStatusClasses()} border-2 rounded-lg p-2.5 sm:p-3 mb-1.5 shadow-sm transition-all duration-300 select-none ${isDragging ? 'cursor-grabbing opacity-90 transform rotate-1 shadow-lg' : 'cursor-grab'} ${getDragClasses()} relative overflow-hidden`}
+      className={`item-card ${getStatusClasses()} border-2 rounded-lg p-2.5 sm:p-3 mb-1.5 shadow-sm transition-all duration-300 select-none ${isDragging ? 'cursor-grabbing opacity-90 transform rotate-1 shadow-lg' : 'cursor-grab'} ${getDragClasses()} ${isLongPressing ? 'ring-4 ring-blue-300 ring-opacity-50 bg-blue-50' : ''} relative overflow-hidden`}
       style={{ 
         transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
         touchAction: item.status === 'pending' ? 'pan-y' : 'auto' // Permite scroll vertical, bloqueia horizontal

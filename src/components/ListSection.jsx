@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import ListItem from './ListItem'
 
-function ListSection({ title, items, onUpdateStatus, statusType, isEmpty = false, dataTour, hideTitle = false }) {
+function ListSection({ title, items, onUpdateStatus, onEdit, statusType, isEmpty = false, dataTour, hideTitle = false }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   
   // Só permite colapsar as seções "Comprados" e "Em Falta"
@@ -40,6 +40,7 @@ function ListSection({ title, items, onUpdateStatus, statusType, isEmpty = false
                   key={item.id}
                   item={item}
                   onUpdateStatus={onUpdateStatus}
+                  onEdit={onEdit}
                   statusType={statusType}
                 />
               ))}

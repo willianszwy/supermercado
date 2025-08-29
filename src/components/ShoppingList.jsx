@@ -12,10 +12,11 @@ import WhatsAppIcon from './icons/WhatsAppIcon'
 import { getCategoryById, getCategoriesWithItems, getCategoryColor } from '../utils/categories'
 import { formatPrice, formatPriceSimple } from '../utils/priceUtils'
 
-function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, onClearList, onShowTour, onFinishCart, onShowHistory }) {
+function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onUpdateProduct, onNewList, onClearList, onShowTour, onFinishCart, onShowHistory }) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [collapsedCategories, setCollapsedCategories] = useState(new Set())
   const [activeTab, setActiveTab] = useState('pending')
+  const [editingItem, setEditingItem] = useState(null)
   
   const pendingItems = currentList.filter(item => item.status === 'pending')
   const completedItems = currentList.filter(item => item.status === 'completed')
@@ -39,6 +40,19 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
   const handleClearList = () => {
     onClearList()
     setShowConfirmDialog(false)
+  }
+
+  const handleEditItem = (item) => {
+    setEditingItem(item)
+  }
+
+  const handleUpdateProduct = (id, newData) => {
+    onUpdateProduct(id, newData)
+    setEditingItem(null)
+  }
+
+  const handleCancelEdit = () => {
+    setEditingItem(null)
   }
 
   const handleShareWhatsApp = () => {
@@ -169,6 +183,7 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
                           <ListSection
                             items={categoryWithItems.items}
                             onUpdateStatus={onUpdateStatus}
+                            onEdit={handleEditItem}
                             hideTitle={true}
                           />
                         </div>
@@ -198,6 +213,7 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
               title="Itens Comprados"
               items={completedItems}
               onUpdateStatus={onUpdateStatus}
+              onEdit={handleEditItem}
               statusType="completed"
               dataTour="completed-section"
               hideTitle={false}
@@ -212,6 +228,7 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
               title="Itens em Falta"
               items={missingItems}
               onUpdateStatus={onUpdateStatus}
+              onEdit={handleEditItem}
               statusType="missing"
               dataTour="missing-section"
               hideTitle={false}
@@ -294,7 +311,12 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onNewList, on
         </button>
       )}
 
-      <FloatingAddButton onAddProduct={onAddProduct} />
+      <FloatingAddButton 
+        onAddProduct={onAddProduct} 
+        editingItem={editingItem}
+        onEditProduct={handleUpdateProduct}
+        onCancelEdit={handleCancelEdit}
+      />
 
       <ConfirmDialog
         isOpen={showConfirmDialog}

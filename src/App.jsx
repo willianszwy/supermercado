@@ -109,6 +109,45 @@ function App() {
     }
   }
 
+  const updateProduct = (id, newData) => {
+    const normalizedName = normalizeProductText(newData.name)
+    
+    if (!normalizedName) return // Não atualiza se o nome estiver vazio após normalização
+    
+    setCurrentList(prev => 
+      prev.map(product => 
+        product.id === id 
+          ? { 
+              ...product, 
+              name: normalizedName,
+              quantity: newData.quantity,
+              category: newData.category,
+              price: parseFloat(newData.price) || 0
+            } 
+          : product
+      )
+    )
+
+    // Update all products if exists
+    setAllProducts(prev => {
+      const existing = prev.find(p => p.name.toLowerCase() === normalizedName.toLowerCase())
+      if (existing) {
+        return prev.map(p => 
+          p.name.toLowerCase() === normalizedName.toLowerCase()
+            ? { 
+                ...p, 
+                category: newData.category,
+                lastQuantity: newData.quantity,
+                lastUsed: new Date().toISOString(),
+                suggestedPrice: parseFloat(newData.price) || p.suggestedPrice || 0
+              }
+            : p
+        )
+      }
+      return prev
+    })
+  }
+
   const createNewList = (selectedProducts) => {
     const newList = selectedProducts.map(({ name, quantity, category, price }) => ({
       id: generateUniqueId(),
@@ -197,6 +236,7 @@ function App() {
                 currentList={currentList}
                 onAddProduct={addProduct}
                 onUpdateStatus={updateProductStatus}
+                onUpdateProduct={updateProduct}
                 onNewList={() => setCurrentView('newList')}
                 onClearList={clearList}
                 onShowTour={handleShowTour}

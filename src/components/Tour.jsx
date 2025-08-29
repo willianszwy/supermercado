@@ -38,6 +38,13 @@ const tourSteps = [
     position: 'bottom'
   },
   {
+    id: 'edit-gesture',
+    title: '✏️ Editar Itens',
+    content: 'Segure qualquer item por 2 segundos (long press) para editá-lo! Você pode alterar nome, quantidade, categoria e preço. O item ficará com borda azul durante o toque.',
+    target: '[data-tour="pending-section"]',
+    position: 'bottom'
+  },
+  {
     id: 'price-estimation',
     title: '💰 Estimativa de Gastos',
     content: 'Veja sua estimativa de gastos no final da lista! Acompanhe quanto já gastou, o que ainda falta comprar e o total geral. Valores são sugeridos para sua referência.',
