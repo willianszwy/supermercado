@@ -3,22 +3,23 @@ import RemoveIcon from './RemoveIcon'
 import TrashIcon from './TrashIcon'
 import PlusIcon from './PlusIcon'
 import SimplePlusIcon from './SimplePlusIcon'
-import ImportIcon from './ImportIcon'
 import WhatsAppIcon from './icons/WhatsAppIcon'
 import HelpIcon from './HelpIcon'
 import NewListTour from './NewListTour'
+import NewListItem from './NewListItem'
 import { normalizeProductText } from '../utils/textUtils'
 import { getCategoryById, CATEGORIES } from '../utils/categories'
 import { formatPrice, parsePrice } from '../utils/priceUtils'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useHapticFeedback } from '../hooks/useHapticFeedback'
 
 function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
   const [selectedProducts, setSelectedProducts] = useState(new Map())
   const [showAddModal, setShowAddModal] = useState(false)
-  const [showBulkImportModal, setShowBulkImportModal] = useState(false)
   const [showWhatsAppImportModal, setShowWhatsAppImportModal] = useState(false)
   const [showTour, setShowTour] = useState(false)
   const [hasSeenNewListTour, setHasSeenNewListTour] = useLocalStorage('hasSeenNewListTour', false)
+  const { onButtonPress, onSuccess } = useHapticFeedback()
 
   const sortedProducts = [...allProducts].sort((a, b) => 
     new Date(b.lastUsed) - new Date(a.lastUsed)
@@ -34,16 +35,33 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
     }
   }, [hasSeenNewListTour, allProducts.length])
 
-  const toggleProduct = (productName, lastQuantity, category, suggestedPrice) => {
+  const addProduct = (productName, lastQuantity, category, suggestedPrice) => {
     setSelectedProducts(prev => {
       const newMap = new Map(prev)
-      if (newMap.has(productName)) {
-        newMap.delete(productName)
-      } else {
+      if (!newMap.has(productName)) {
         newMap.set(productName, { name: productName, quantity: lastQuantity, category, price: suggestedPrice || 0 })
       }
       return newMap
     })
+  }
+
+  const removeFromSelection = (productName, fromSelection = false) => {
+    if (fromSelection) {
+      // Remove apenas da seleção atual
+      setSelectedProducts(prev => {
+        const newMap = new Map(prev)
+        newMap.delete(productName)
+        return newMap
+      })
+    } else {
+      // Remove permanentemente
+      onRemoveProduct(productName)
+      setSelectedProducts(prev => {
+        const newMap = new Map(prev)
+        newMap.delete(productName)
+        return newMap
+      })
+    }
   }
 
   const updateQuantity = (productName, quantity) => {
@@ -58,19 +76,11 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
   }
 
   const handleCreateList = () => {
+    onSuccess()
     const productsArray = Array.from(selectedProducts.values())
     onCreateList(productsArray)
   }
 
-  const removeProduct = (productName) => {
-    onRemoveProduct(productName)
-    // Remove from selected products if it was selected
-    setSelectedProducts(prev => {
-      const newMap = new Map(prev)
-      newMap.delete(productName)
-      return newMap
-    })
-  }
 
   const addNewProduct = (name, quantity) => {
     const normalizedName = normalizeProductText(name)
@@ -79,36 +89,17 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
     // Add to selected products
     setSelectedProducts(prev => {
       const newMap = new Map(prev)
-      newMap.set(normalizedName, { name: normalizedName, quantity })
+      newMap.set(normalizedName, { name: normalizedName, quantity, category: 'geral', price: 0 })
       return newMap
     })
 
     setShowAddModal(false)
   }
 
-  const handleBulkImport = (products) => {
-    // Add all imported products to selected products
-    setSelectedProducts(prev => {
-      const newMap = new Map(prev)
-      products.forEach(product => {
-        newMap.set(product.name, product)
-      })
-      return newMap
-    })
-    
-    setShowBulkImportModal(false)
-  }
 
   const handleWhatsAppImport = (products) => {
-    // Add all imported products to selected products
-    setSelectedProducts(prev => {
-      const newMap = new Map(prev)
-      products.forEach(product => {
-        newMap.set(product.name, product)
-      })
-      return newMap
-    })
-    
+    // Create list directly with imported products
+    onCreateList(products)
     setShowWhatsAppImportModal(false)
   }
 
@@ -126,108 +117,53 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
       <header className="py-5 border-b-2 border-primary-blue mb-5">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <button onClick={onBack} className="btn-secondary">
+            <button onClick={() => { onButtonPress(); onBack(); }} className="btn-secondary">
               ← Voltar
             </button>
             <h2 className="text-2xl font-bold text-primary-blue">
               Nova Lista
             </h2>
             <button
-              onClick={handleShowTour}
+              onClick={() => { onButtonPress(); handleShowTour(); }}
               className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 flex items-center justify-center text-sm transition-colors"
               title="Tutorial - Como criar listas"
             >
               <HelpIcon className="w-4 h-4" />
             </button>
           </div>
-          <button
-            onClick={() => setShowBulkImportModal(true)}
-            className="btn-secondary flex items-center gap-2"
-            title="Importar lista avançada"
-          >
-            <ImportIcon className="w-4 h-4" />
-            Avançado
-          </button>
         </div>
         
         {/* Botão WhatsApp prominente */}
         <button
-          onClick={() => setShowWhatsAppImportModal(true)}
+          onClick={() => { onButtonPress(); setShowWhatsAppImportModal(true); }}
           className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 mt-3"
-          title="Importar lista compartilhada pelo WhatsApp"
+          title="Criar lista rapidamente colando do WhatsApp"
         >
           <WhatsAppIcon className="w-5 h-5" />
-          Colar Lista do WhatsApp
+          Criar Lista do WhatsApp
         </button>
       </header>
 
       <main>
         <div className="mb-8">
-        <h3 className="mb-4 text-lg font-semibold text-black">
+        <h3 className="mb-2 text-lg font-semibold text-black">
           Produtos Anteriores
         </h3>
+        <p className="mb-4 text-sm text-gray-600">
+          Toque para adicionar • Arraste → para lista rápida • Arraste ← para opções
+        </p>
         
         <div className="grid gap-3">
           {sortedProducts.map(product => (
-            <div
+            <NewListItem
               key={product.name}
-              className={`bg-white border-2 rounded-lg p-3 cursor-pointer transition-all duration-300 ${
-                selectedProducts.has(product.name)
-                  ? 'border-primary-green bg-green-50'
-                  : 'border-gray-200 hover:border-primary-blue'
-              }`}
-              onClick={() => !selectedProducts.has(product.name) && toggleProduct(product.name, product.lastQuantity, product.category, product.suggestedPrice)}
-            >
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="flex flex-col">
-                    <div className="font-semibold">{product.name}</div>
-                    {product.suggestedPrice > 0 && (
-                      <div className="text-xs text-gray-600">{formatPrice(product.suggestedPrice)}</div>
-                    )}
-                  </div>
-                  <div className="text-white text-sm bg-slate-500 px-2 py-1 rounded-full font-semibold min-w-6 text-center shadow-sm">
-                    {product.lastQuantity}
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  {selectedProducts.has(product.name) ? (
-                    <>
-                      <input
-                        type="number"
-                        min="1"
-                        value={selectedProducts.get(product.name).quantity}
-                        onChange={(e) => updateQuantity(product.name, parseInt(e.target.value) || 1)}
-                        onClick={(e) => e.stopPropagation()}
-                        className="w-16 px-2 py-1 border border-gray-300 rounded bg-white text-black text-center text-sm"
-                      />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          toggleProduct(product.name)
-                        }}
-                        className="w-6 h-6 rounded bg-primary-red text-white text-sm font-bold hover:bg-primary-red-dark flex items-center justify-center"
-                        title="Remover da seleção"
-                      >
-                        <RemoveIcon className="w-3 h-3" />
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        removeProduct(product.name)
-                      }}
-                      className="w-6 h-6 rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600 flex items-center justify-center text-sm transition-colors"
-                      title="Remover produto permanentemente"
-                    >
-                      <TrashIcon className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
+              product={product}
+              isSelected={selectedProducts.has(product.name)}
+              selectedQuantity={selectedProducts.get(product.name)?.quantity || product.lastQuantity}
+              onAddProduct={addProduct}
+              onRemoveProduct={removeFromSelection}
+              onUpdateQuantity={updateQuantity}
+            />
           ))}
           
           {sortedProducts.length === 0 && (
@@ -268,13 +204,6 @@ function NewListView({ allProducts, onCreateList, onBack, onRemoveProduct }) {
         />
       )}
 
-      {/* Bulk Import Modal */}
-      {showBulkImportModal && (
-        <BulkImportModal
-          onImport={handleBulkImport}
-          onClose={() => setShowBulkImportModal(false)}
-        />
-      )}
 
       {/* WhatsApp Import Modal */}
       {showWhatsAppImportModal && (
@@ -400,255 +329,6 @@ function AddProductModal({ onAddProduct, onClose }) {
   )
 }
 
-// Bulk Import Modal Component
-function BulkImportModal({ onImport, onClose }) {
-  const [importText, setImportText] = useState('')
-  const [importMode, setImportMode] = useState('text') // 'text' or 'csv'
-
-  const parseCsvText = (text) => {
-    const lines = text.trim().split('\n').filter(line => line.trim())
-    const products = []
-
-    for (const line of lines) {
-      let cleanLine = line.trim()
-      
-      // Ignorar linhas que claramente não são produtos
-      if (!cleanLine ||
-          cleanLine.length < 2 ||
-          cleanLine.length > 60 ||
-          cleanLine.includes('Lista de Compras') ||
-          cleanLine.includes('Estimativa Total') ||
-          cleanLine.includes('Valores sugeridos') ||
-          cleanLine.match(/^[📝✨🔹💰*\-\s]*$/u) ||
-          cleanLine.match(/^\*.*\*$/) ||
-          cleanLine.match(/^_.*_$/) ||
-          cleanLine.match(/^https?:\/\//i) ||
-          cleanLine.match(/^\d{4}-\d{2}-\d{2}/) ||
-          cleanLine.match(/^\w+@\w+\.\w+/) ||
-          cleanLine.split(' ').length > 8) {
-        continue
-      }
-
-      // Try CSV format with price: "product name, quantity, price"
-      const csvWithPriceMatch = cleanLine.match(/^([^,]+),\s*(\d+),\s*([\d.,]+)$/)
-      if (csvWithPriceMatch) {
-        const name = normalizeProductText(csvWithPriceMatch[1].trim())
-        const quantity = parseInt(csvWithPriceMatch[2]) || 1
-        const price = parsePrice(csvWithPriceMatch[3]) || 0
-        if (name && name.length > 1 && name.length < 40 && !name.match(/^[0-9\s$.,]+$/)) {
-          products.push({ name, quantity, price })
-        }
-        continue
-      }
-
-      // Try CSV format: "product name, quantity"
-      const csvMatch = cleanLine.match(/^([^,]+),\s*(\d+)$/)
-      if (csvMatch) {
-        const name = normalizeProductText(csvMatch[1].trim())
-        const quantity = parseInt(csvMatch[2]) || 1
-        if (name && name.length > 1 && name.length < 40 && !name.match(/^[0-9\s$.,]+$/)) {
-          products.push({ name, quantity, price: 0 })
-        }
-        continue
-      }
-
-      // Try simple format: "quantity product name" or just "product name"
-      const simpleMatch = cleanLine.match(/^(\d+)?\s*(.+)$/)
-      if (simpleMatch && cleanLine.match(/[a-záéíóúàèìòù]/i)) {
-        const quantity = parseInt(simpleMatch[1]) || 1
-        const name = normalizeProductText(simpleMatch[2].trim())
-        if (name && 
-            name.length > 1 && 
-            name.length < 40 && 
-            !name.match(/^[0-9\s$.,]+$/) &&
-            name.split(' ').length <= 5) {
-          products.push({ name, quantity, price: 0 })
-        }
-      }
-    }
-
-    return products
-  }
-
-  const handleImport = () => {
-    if (!importText.trim()) return
-
-    const products = parseCsvText(importText)
-    if (products.length === 0) {
-      alert('Nenhum produto válido encontrado. Verifique o formato dos dados.')
-      return
-    }
-
-    onImport(products)
-  }
-
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const text = e.target.result
-      setImportText(text)
-      setImportMode('csv')
-    }
-    reader.readAsText(file)
-  }
-
-  const exampleText = `Arroz, 2, 8.50
-Feijão, 1, 6.80
-Macarrão, 3, 4.20
-Açúcar, 1, 5.90
-Óleo de Soja, 2`
-
-  const exampleSimple = `2 Arroz
-1 Feijão  
-3 Macarrão
-Açúcar
-2 Óleo de Soja`
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg w-full max-w-lg mx-auto shadow-xl max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b">
-          <h3 className="text-lg font-semibold text-gray-800">
-            Importar Lista em Massa
-          </h3>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-          >
-            <RemoveIcon className="w-4 h-4 text-gray-500" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-4 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
-          {/* Import Mode Selection */}
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => setImportMode('text')}
-              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                importMode === 'text'
-                  ? 'bg-primary-blue text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Digitar Texto
-            </button>
-            <button
-              onClick={() => setImportMode('csv')}
-              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                importMode === 'csv'
-                  ? 'bg-primary-blue text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Carregar CSV
-            </button>
-          </div>
-
-          {importMode === 'csv' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Carregar arquivo CSV
-              </label>
-              <input
-                type="file"
-                accept=".csv,.txt"
-                onChange={handleFileUpload}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-blue"
-              />
-            </div>
-          )}
-
-          {/* Text Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Lista de produtos
-            </label>
-            <textarea
-              value={importText}
-              onChange={(e) => setImportText(e.target.value)}
-              placeholder="Cole ou digite sua lista aqui..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-blue h-32 resize-none"
-            />
-          </div>
-
-          {/* Format Examples */}
-          <div className="bg-gray-50 rounded-lg p-3">
-            <h4 className="text-sm font-medium text-gray-800 mb-2">Formatos aceitos:</h4>
-            
-            <div className="space-y-3 text-xs">
-              <div>
-                <p className="font-medium text-gray-700 mb-1">Formato CSV (produto, quantidade, preço):</p>
-                <pre className="bg-white p-2 rounded text-gray-600 overflow-x-auto">
-{exampleText}
-                </pre>
-              </div>
-              
-              <div>
-                <p className="font-medium text-gray-700 mb-1">Formato simples (quantidade produto):</p>
-                <pre className="bg-white p-2 rounded text-gray-600 overflow-x-auto">
-{exampleSimple}
-                </pre>
-              </div>
-            </div>
-          </div>
-
-          {/* Preview */}
-          {importText.trim() && (
-            <div>
-              <h4 className="text-sm font-medium text-gray-800 mb-2">
-                Produtos encontrados ({parseCsvText(importText).length}):
-              </h4>
-              <div className="bg-blue-50 rounded-lg p-3 max-h-32 overflow-y-auto">
-                {parseCsvText(importText).map((product, index) => (
-                  <div key={index} className="flex justify-between items-center py-1">
-                    <div className="flex flex-col">
-                      <span className="text-sm text-gray-800">{product.name}</span>
-                      {product.price > 0 && (
-                        <span className="text-xs text-gray-600">{formatPrice(product.price)}</span>
-                      )}
-                    </div>
-                    <span className="text-xs bg-blue-200 px-2 py-1 rounded text-blue-800">
-                      {product.quantity}
-                    </span>
-                  </div>
-                ))}
-                {parseCsvText(importText).length === 0 && (
-                  <p className="text-sm text-red-600">Nenhum produto válido encontrado</p>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-3 p-4 border-t">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleImport}
-            disabled={!importText.trim() || parseCsvText(importText).length === 0}
-            className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
-              importText.trim() && parseCsvText(importText).length > 0
-                ? 'bg-primary-green text-white hover:bg-primary-green-dark'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            Importar ({parseCsvText(importText).length})
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 // WhatsApp Import Modal Component - Simplified for non-technical users
 function WhatsAppImportModal({ onImport, onClose }) {
@@ -917,7 +597,7 @@ function WhatsAppImportModal({ onImport, onClose }) {
               <li>1. Copie a lista de compras do WhatsApp</li>
               <li>2. Cole aqui usando o botão ou Ctrl+V</li>
               <li>3. Confira os produtos encontrados</li>
-              <li>4. Clique em &quot;Importar&quot;</li>
+              <li>4. Clique em &quot;Criar Lista&quot; (vai direto para a lista!)</li>
             </ol>
           </div>
 
@@ -1016,7 +696,7 @@ Formatos aceitos:
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
-            Importar {previewProducts.length > 0 ? `(${previewProducts.length})` : ''}
+            Criar Lista {previewProducts.length > 0 ? `(${previewProducts.length})` : ''}
           </button>
         </div>
       </div>

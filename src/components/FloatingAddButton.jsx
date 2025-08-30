@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { normalizeProductText } from '../utils/textUtils'
 import { getCategoriesList, getCategoryLightColor, getCategoryBorderColor, getCategoryColor } from '../utils/categories'
 import { applyPriceMask, parseMaskedPrice } from '../utils/priceUtils'
+import { useHapticFeedback } from '../hooks/useHapticFeedback'
 import PlusIcon from './PlusIcon'
 import SimplePlusIcon from './SimplePlusIcon'
 import RemoveIcon from './RemoveIcon'
@@ -9,12 +10,15 @@ import RemoveIcon from './RemoveIcon'
 function FloatingAddButton({ onAddProduct, editingItem, onEditProduct, onCancelEdit }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const isEditMode = !!editingItem
+  const { onButtonPress, onAdd, onEdit, onCancel, withHaptic } = useHapticFeedback()
 
   const openModal = () => {
+    onButtonPress()
     setIsModalOpen(true)
   }
 
   const closeModal = () => {
+    onCancel()
     setIsModalOpen(false)
     if (isEditMode && onCancelEdit) {
       onCancelEdit()
@@ -23,8 +27,10 @@ function FloatingAddButton({ onAddProduct, editingItem, onEditProduct, onCancelE
 
   const handleAddProduct = (name, quantity, category, price) => {
     if (isEditMode && onEditProduct && editingItem) {
+      onEdit()
       onEditProduct(editingItem.id, { name, quantity, category, price })
     } else {
+      onAdd()
       onAddProduct(name, quantity, category, price)
     }
     closeModal()
@@ -75,29 +81,35 @@ function AddProductModal({ onAddProduct, onClose, isEditMode = false, editingIte
   const [quantity, setQuantity] = useState(isEditMode && editingItem ? editingItem.quantity : 1)
   const [price, setPrice] = useState(isEditMode && editingItem && editingItem.price ? applyPriceMask(editingItem.price.toString()) : '')
   const [step, setStep] = useState(1) // 1: produto e quantidade, 2: categoria
+  const { onButtonPress, onCancel, onSuccess } = useHapticFeedback()
 
   const handleFirstStep = (e) => {
     e.preventDefault()
     const normalizedName = normalizeProductText(productName)
     if (normalizedName) {
+      onButtonPress()
       setStep(2)
     }
   }
 
   const handleCategorySelect = (categoryId) => {
+    onSuccess()
     const numericPrice = parseMaskedPrice(price)
     onAddProduct(productName, quantity, categoryId, numericPrice)
   }
 
   const goBackToProduct = () => {
+    onButtonPress()
     setStep(1)
   }
 
   const incrementQuantity = () => {
+    onButtonPress()
     setQuantity(prev => prev + 1)
   }
 
   const decrementQuantity = () => {
+    onButtonPress()
     setQuantity(prev => Math.max(1, prev - 1))
   }
 
@@ -198,7 +210,7 @@ function AddProductModal({ onAddProduct, onClose, isEditMode = false, editingIte
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={() => { onCancel(); onClose(); }}
                 className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
               >
                 Cancelar

@@ -8,6 +8,7 @@ import { useLocalStorage } from './hooks/useLocalStorage'
 import { normalizeProductText } from './utils/textUtils'
 import { generateUniqueId } from './utils/idUtils'
 import { validateProductInput } from './utils/validationUtils'
+import { initializeHaptics } from './utils/hapticUtils'
 
 function App() {
   const [currentView, setCurrentView] = useState('main')
@@ -44,6 +45,21 @@ function App() {
       setAllProducts(exampleProducts)
     }
   }, [hasSeenTour, currentView, currentList.length, setCurrentList, setAllProducts])
+
+  // Initialize haptic feedback system
+  useEffect(() => {
+    const initHaptics = async () => {
+      try {
+        await initializeHaptics()
+      } catch (error) {
+        console.debug('Haptic initialization failed:', error)
+      }
+    }
+    
+    // Initialize haptics after a short delay to ensure user has interacted
+    const timer = setTimeout(initHaptics, 1000)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Mostrar tour automaticamente na primeira visita
   useEffect(() => {

@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import CartIcon from './CartIcon'
+import { useHapticFeedback } from '../hooks/useHapticFeedback'
 
 function HistoryView({ cartHistory, onBack, onRestoreCart }) {
   const [selectedCart, setSelectedCart] = useState(null)
+  const { onButtonPress, onSuccess } = useHapticFeedback()
 
 
   const formatTime = (dateString) => {
@@ -37,7 +39,7 @@ function HistoryView({ cartHistory, onBack, onRestoreCart }) {
   return (
     <>
       <header className="py-5 flex items-center gap-5 mb-5 border-b-2 border-primary-blue">
-        <button onClick={onBack} className="btn-secondary">
+        <button onClick={() => { onButtonPress(); onBack(); }} className="btn-secondary">
           ← Voltar
         </button>
         <h2 className="text-2xl font-bold text-primary-blue">

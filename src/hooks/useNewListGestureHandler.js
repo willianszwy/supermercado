@@ -6,7 +6,7 @@ const MENU_REVEAL_THRESHOLD = 60
 const MENU_COMPLETE_THRESHOLD = 120
 const SENSITIVITY_THRESHOLD = 30
 
-export function useGestureHandler({ item, onUpdateStatus, onEdit }) {
+export function useNewListGestureHandler({ product, onAddProduct, onRemoveProduct, isSelected }) {
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState(0)
   const [dragDirection, setDragDirection] = useState(null)
@@ -28,7 +28,6 @@ export function useGestureHandler({ item, onUpdateStatus, onEdit }) {
   }, [])
 
   const handleStart = useCallback((clientX) => {
-    if (item.status !== 'pending') return false
     startPosRef.current = clientX
     setIsDragging(true)
     
@@ -36,7 +35,7 @@ export function useGestureHandler({ item, onUpdateStatus, onEdit }) {
     triggerGestureHaptic('drag_start')
     
     return true
-  }, [item.status])
+  }, [])
 
   const updateDragState = useCallback((offset) => {
     setDragOffset(offset)
@@ -46,7 +45,7 @@ export function useGestureHandler({ item, onUpdateStatus, onEdit }) {
       setDragDirection(direction)
       
       if (direction === 'right') {
-        // Right swipe: show completion preview
+        // Right swipe: show add to list preview
         const isPreview = Math.abs(offset) > DRAG_THRESHOLD * 0.6
         const wasPreview = showPreview
         
@@ -54,9 +53,9 @@ export function useGestureHandler({ item, onUpdateStatus, onEdit }) {
         setShowActionMenu(false)
         setMenuStage('hidden')
         
-        // Haptic feedback when reaching threshold
+        // Haptic feedback when reaching threshold for add
         if (isPreview && !wasPreview) {
-          triggerGestureHaptic('drag_threshold', 'right', 'complete')
+          triggerGestureHaptic('drag_threshold', 'right', 'add')
         }
       } else {
         // Left swipe: progressive menu system
@@ -74,14 +73,14 @@ export function useGestureHandler({ item, onUpdateStatus, onEdit }) {
             triggerGestureHaptic('menu_reveal')
           }
         } else if (absOffset >= MENU_COMPLETE_THRESHOLD) {
-          // Stage 2: Missing action (120px+)
+          // Stage 2: Delete action (120px+)
           setShowActionMenu(false)
           setMenuStage('action')
           setShowPreview(true)
           
-          // Haptic feedback when reaching missing threshold
+          // Haptic feedback when reaching delete threshold
           if (prevMenuStage === 'revealed') {
-            triggerGestureHaptic('drag_threshold', 'left', 'missing')
+            triggerGestureHaptic('drag_threshold', 'left', 'delete')
           }
         } else {
           // Less than 60px: hide menu
@@ -99,20 +98,20 @@ export function useGestureHandler({ item, onUpdateStatus, onEdit }) {
   }, [])
 
   const handleEnd = useCallback(() => {
-    if (!isDragging || item.status !== 'pending') {
+    if (!isDragging) {
       resetDragState()
       return
     }
     
     // Execute actions based on drag distance
     if (dragOffset > DRAG_THRESHOLD) {
-      // Right swipe: mark as completed
-      triggerGestureHaptic('drag_complete', 'right', 'complete')
-      onUpdateStatus(item.id, 'completed')
+      // Right swipe: add to list
+      triggerGestureHaptic('drag_complete', 'right', 'add')
+      onAddProduct(product.name, product.lastQuantity, product.category, product.suggestedPrice)
     } else if (dragOffset < -MENU_COMPLETE_THRESHOLD) {
-      // Left swipe beyond threshold: mark as missing
-      triggerGestureHaptic('drag_complete', 'left', 'missing')
-      onUpdateStatus(item.id, 'missing')
+      // Left swipe beyond threshold: delete product permanently
+      triggerGestureHaptic('drag_complete', 'left', 'delete')
+      onRemoveProduct(product.name)
     }
     
     resetDragState()
@@ -121,7 +120,7 @@ export function useGestureHandler({ item, onUpdateStatus, onEdit }) {
     if (menuStage !== 'revealed') {
       resetMenuState()
     }
-  }, [isDragging, dragOffset, item.status, item.id, onUpdateStatus, menuStage, resetDragState, resetMenuState])
+  }, [isDragging, dragOffset, product, onAddProduct, onRemoveProduct, menuStage, resetDragState, resetMenuState])
 
   const cancelGesture = useCallback(() => {
     resetDragState()
@@ -191,16 +190,16 @@ export function useGestureHandler({ item, onUpdateStatus, onEdit }) {
   }, [isDragging, showActionMenu, cancelGesture])
 
   // Menu Action Handlers
-  const handleEditAction = useCallback((e) => {
+  const handleAddAction = useCallback((e) => {
     e.preventDefault()
     e.stopPropagation()
     
-    // Haptic feedback for button tap
+    // Haptic feedback for add button tap
     triggerGestureHaptic('button_tap')
     
-    if (onEdit) onEdit(item)
+    onAddProduct(product.name, product.lastQuantity, product.category, product.suggestedPrice)
     resetMenuState()
-  }, [onEdit, item, resetMenuState])
+  }, [onAddProduct, product, resetMenuState])
 
   const handleDeleteAction = useCallback((e) => {
     e.preventDefault()
@@ -209,9 +208,9 @@ export function useGestureHandler({ item, onUpdateStatus, onEdit }) {
     // Haptic feedback for delete action
     triggerGestureHaptic('drag_complete', 'left', 'delete')
     
-    onUpdateStatus(item.id, 'delete')
+    onRemoveProduct(product.name)
     resetMenuState()
-  }, [onUpdateStatus, item.id, resetMenuState])
+  }, [onRemoveProduct, product.name, resetMenuState])
 
   // Global event listeners for dragging
   useEffect(() => {
@@ -286,7 +285,7 @@ export function useGestureHandler({ item, onUpdateStatus, onEdit }) {
     handleTouchStart,
     
     // Action handlers
-    handleEditAction,
+    handleAddAction,
     handleDeleteAction,
     
     // Utility functions
