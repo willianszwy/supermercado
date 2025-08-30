@@ -4,7 +4,7 @@ function CategoryHeader({ category, itemCount, isCollapsed, onToggle }) {
   return (
     <button
       onClick={onToggle}
-      className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-gray-50 transition-colors rounded-t-lg border-b border-gray-100"
+      className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-gray-50 transition-colors rounded-t-lg"
     >
       <div className="flex items-center gap-3 flex-1">
         {/* Círculo colorido da categoria */}

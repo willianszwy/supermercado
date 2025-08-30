@@ -167,7 +167,7 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onUpdateProdu
                   const isCollapsed = collapsedCategories.has(categoryWithItems.id)
                   
                   return (
-                    <div key={categoryWithItems.id} className="category-card bg-white rounded-xl border-2 border-gray-200 shadow-sm overflow-hidden">
+                    <div key={categoryWithItems.id} className="category-card bg-white rounded-xl border-2 border-gray-200 shadow-sm overflow-visible">
                       <CategoryHeader 
                         category={categoryWithItems}
                         itemCount={categoryWithItems.items.length}
@@ -176,7 +176,7 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onUpdateProdu
                       />
                       
                       {!isCollapsed && (
-                        <div className="px-1 pb-2">
+                        <div>
                           <ListSection
                             items={categoryWithItems.items}
                             onUpdateStatus={onUpdateStatus}

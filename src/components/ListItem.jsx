@@ -356,14 +356,14 @@ function ListItem({ item, onUpdateStatus, statusType, onEdit }) {
   }
 
   const getStatusClasses = () => {
-    if (statusType === 'completed') return 'bg-green-50 border-primary-green'
-    if (statusType === 'missing') return 'bg-primary-red-light border-primary-red'
-    return 'bg-white border-gray-200'
+    if (statusType === 'completed') return 'bg-green-50'
+    if (statusType === 'missing') return 'bg-primary-red-light'
+    return 'bg-white'
   }
 
   return (
     <li
-      className={`item-card ${getStatusClasses()} border-2 rounded-lg p-2.5 sm:p-3 mb-1.5 shadow-sm transition-all duration-300 select-none min-h-[60px] ${isDragging ? 'cursor-grabbing opacity-90 transform rotate-1 shadow-lg' : 'cursor-grab'} ${getDragClasses()} relative overflow-hidden`}
+      className={`item-card ${getStatusClasses()} border-b border-gray-100 p-2.5 sm:p-3 transition-all duration-300 select-none min-h-[60px] ${isDragging ? 'cursor-grabbing opacity-90 transform rotate-1 shadow-lg z-50' : 'cursor-grab'} ${getDragClasses()} relative overflow-hidden last:border-b-0 last:rounded-b-xl`}
       style={{ 
         transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
         touchAction: item.status === 'pending' ? 'pan-y' : 'auto', // Permite scroll vertical, bloqueia horizontal
