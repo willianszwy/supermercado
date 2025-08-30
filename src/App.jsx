@@ -15,7 +15,7 @@ function App() {
   const [cartHistory, setCartHistory] = useLocalStorage('cartHistory', [])
   const [showTour, setShowTour] = useState(false)
   const [hasSeenTour, setHasSeenTour] = useLocalStorage('hasSeenTour', false)
-  const [gestureInteractionCount, setGestureInteractionCount] = useLocalStorage('gestureInteractionCount', 0)
+  const [, setGestureInteractionCount] = useLocalStorage('gestureInteractionCount', 0)
 
   // Criar lista de exemplo na primeira instalação
   useEffect(() => {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { normalizeProductText } from '../utils/textUtils'
-import { getCategoriesList, CATEGORIES, getCategoryLightColor, getCategoryBorderColor, getCategoryColor } from '../utils/categories'
+import { getCategoriesList, getCategoryLightColor, getCategoryBorderColor, getCategoryColor } from '../utils/categories'
 import { applyPriceMask, parseMaskedPrice } from '../utils/priceUtils'
 import PlusIcon from './PlusIcon'
 import SimplePlusIcon from './SimplePlusIcon'

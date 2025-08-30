@@ -61,3 +61,20 @@ Categories are defined in `src/utils/categories.js` with 11 predefined types (Ge
 ### Text Processing
 
 `textUtils.js` provides `normalizeProductText()` for consistent product name handling (trim, capitalize, normalize spaces)
+
+### PWA Configuration
+
+- Vite PWA plugin configured for auto-update with GitHub Pages deployment
+- Base path set to `/supermercado/` for GitHub Pages
+- Manifest includes theme colors and icons for standalone app experience
+
+### Data Persistence
+
+Uses `useLocalStorage` hook for persistent state management with error handling:
+- Automatically syncs state changes to localStorage
+- Graceful fallback to initial values on localStorage errors
+- Supports functional updates like React's useState
+
+### Error Handling
+
+ErrorBoundary components wrap all major view components to catch and handle React errors gracefully

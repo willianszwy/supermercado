@@ -9,8 +9,8 @@ import CheckmarkIcon from './CheckmarkIcon'
 import TrashIcon from './TrashIcon'
 import HelpIcon from './HelpIcon'
 import WhatsAppIcon from './icons/WhatsAppIcon'
-import { getCategoryById, getCategoriesWithItems, getCategoryColor } from '../utils/categories'
-import { formatPrice, formatPriceSimple } from '../utils/priceUtils'
+import { getCategoriesWithItems } from '../utils/categories'
+import { formatPrice } from '../utils/priceUtils'
 
 function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onUpdateProduct, onNewList, onClearList, onShowTour, onFinishCart, onShowHistory }) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
@@ -165,9 +165,6 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onUpdateProdu
               <div className="space-y-2" data-tour="pending-section">
                 {categoriesWithPendingItems.map((categoryWithItems) => {
                   const isCollapsed = collapsedCategories.has(categoryWithItems.id)
-                  const completedInCategory = currentList.filter(item => 
-                    (item.category || 'geral') === categoryWithItems.id && item.status === 'completed'
-                  ).length
                   
                   return (
                     <div key={categoryWithItems.id} className="category-card bg-white rounded-xl border-2 border-gray-200 shadow-sm overflow-hidden">
@@ -179,7 +176,7 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onUpdateProdu
                       />
                       
                       {!isCollapsed && (
-                        <div className="px-4 pb-4">
+                        <div className="px-1 pb-2">
                           <ListSection
                             items={categoryWithItems.items}
                             onUpdateStatus={onUpdateStatus}
