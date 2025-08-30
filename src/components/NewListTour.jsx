@@ -5,63 +5,63 @@ const newListTourSteps = [
   {
     id: 'welcome',
     title: '📋 Bem-vindo à Nova Lista!',
-    content: 'Aqui você pode criar uma nova lista rapidamente reutilizando produtos anteriores ou importando de outras fontes. Vamos ver como funciona!',
+    content: 'Agora criar listas ficou mais fácil! Use gestos intuitivos, importação rápida do WhatsApp e reutilize produtos anteriores. Vamos descobrir as novidades!',
     target: null,
     position: 'center'
   },
   {
     id: 'whatsapp-import',
-    title: '📱 Importar do WhatsApp',
-    content: 'Cole uma lista compartilhada do WhatsApp aqui! Funciona com listas do próprio SwipeCart ou qualquer formato de lista de compras.',
-    target: 'button[title="Importar lista compartilhada pelo WhatsApp"]',
+    title: '⚡ Criar Lista do WhatsApp',
+    content: 'Cole uma lista do WhatsApp e ela será criada instantaneamente! Não precisa mais selecionar produtos - vai direto para sua nova lista pronta para usar.',
+    target: 'button[title="Criar lista rapidamente colando do WhatsApp"]',
     position: 'bottom'
-  },
-  {
-    id: 'advanced-import',
-    title: '📄 Importação Avançada',
-    content: 'Para listas em CSV ou formatos mais complexos, use a importação avançada. Suporta arquivos e múltiplos formatos.',
-    target: 'button[title="Importar lista avançada"]',
-    position: 'bottom-right'
   },
   {
     id: 'previous-products',
     title: '🗂️ Produtos Anteriores',
-    content: 'Todos os produtos que você já usou aparecem aqui, ordenados pelos mais recentes. Clique para selecionar!',
+    content: 'Seus produtos mais recentes aparecem aqui. Agora você tem 3 formas de interagir: toque, arraste ou use gestos!',
     target: '.mb-8 h3',
     position: 'bottom'
   },
   {
-    id: 'product-selection',
-    title: '✅ Selecionando Produtos',
-    content: 'Clique nos produtos para selecioná-los. Produtos selecionados ficam verdes e mostram controles de quantidade.',
+    id: 'gesture-instructions',
+    title: '👆 Gestos Intuitivos',
+    content: '• **Toque** = adiciona à lista\n• **Arraste →** = adiciona rapidamente\n• **Arraste ←** = mostra opções (editar/excluir)\n\nO mesmo sistema de gestos da lista principal!',
+    target: '.mb-8 p',
+    position: 'bottom'
+  },
+  {
+    id: 'product-interaction',
+    title: '🎯 Interação Simplificada',
+    content: 'Toque em qualquer produto para adicioná-lo à lista. Produtos selecionados ficam verdes e mostram a quantidade que você pode ajustar.',
     target: '.grid.gap-3 > div:first-child',
     position: 'right'
   },
   {
-    id: 'quantity-controls',
-    title: '🔢 Controles de Quantidade',
-    content: 'Quando um produto está selecionado, você pode ajustar a quantidade diretamente ou remover da seleção com o X.',
+    id: 'swipe-gestures',
+    title: '👈👉 Gestos de Arrastar',
+    content: 'Arraste produtos para a **direita** para adicionar rapidamente, ou para a **esquerda** para ver opções de editar e excluir. Vai sentir vibração no celular!',
     target: '.grid.gap-3 > div:first-child',
     position: 'left'
   },
   {
     id: 'add-new-product',
-    title: '➕ Adicionar Novo Produto',
-    content: 'Não encontrou o produto? Use o botão + para adicionar um produto que nunca foi usado antes.',
+    title: '➕ Adicionar Produto Novo',
+    content: 'Produto não está na lista? Use o botão + para adicionar algo totalmente novo com categoria e preço estimado.',
     target: '.fixed.bottom-6.right-6',
     position: 'left'
   },
   {
     id: 'create-list',
-    title: '🎯 Criar Lista',
-    content: 'Quando tiver selecionado os produtos desejados, clique aqui para criar sua nova lista e ir para a tela principal.',
+    title: '🚀 Finalizar Lista',
+    content: 'Com produtos selecionados, clique aqui para criar sua lista. Ela será aberta automaticamente na tela principal, pronta para usar!',
     target: 'main button.btn-primary, main button:not([disabled])',
     position: 'top'
   },
   {
     id: 'finish',
-    title: '🎉 Perfeito!',
-    content: 'Agora você domina a criação de listas! Selecione produtos anteriores, importe do WhatsApp ou adicione novos. Suas compras ficaram muito mais eficientes! 🛒',
+    title: '🎉 Interface Renovada!',
+    content: 'Agora você tem:\n• ⚡ WhatsApp direto para lista\n• 👆 Gestos consistentes\n• 📱 Feedback háptico\n• 🎯 Fluxo simplificado\n\nSuas compras nunca foram tão eficientes! 🛒',
     target: null,
     position: 'center'
   }
@@ -220,9 +220,19 @@ function NewListTour({ isOpen, onClose }) {
         </div>
 
         {/* Conteúdo */}
-        <p className="text-sm md:text-base text-gray-600 leading-relaxed mb-4 md:mb-6">
-          {currentStepData.content}
-        </p>
+        <div className="text-sm md:text-base text-gray-600 leading-relaxed mb-4 md:mb-6">
+          {currentStepData.content.split('\n').map((line, index) => (
+            <div key={index} className={index > 0 ? 'mt-2' : ''}>
+              {line.includes('**') ? (
+                <span dangerouslySetInnerHTML={{
+                  __html: line.replace(/\*\*(.*?)\*\*/g, '<strong class="text-gray-800">$1</strong>')
+                }} />
+              ) : (
+                line
+              )}
+            </div>
+          ))}
+        </div>
 
         {/* Progresso */}
         <div className="flex items-center justify-between mb-3 md:mb-4">

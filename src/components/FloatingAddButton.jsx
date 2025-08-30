@@ -10,7 +10,7 @@ import RemoveIcon from './RemoveIcon'
 function FloatingAddButton({ onAddProduct, editingItem, onEditProduct, onCancelEdit }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const isEditMode = !!editingItem
-  const { onButtonPress, onAdd, onEdit, onCancel, withHaptic } = useHapticFeedback()
+  const { onButtonPress, onAdd, onEdit, onCancel } = useHapticFeedback()
 
   const openModal = () => {
     onButtonPress()

@@ -4,7 +4,7 @@ import { useHapticFeedback } from '../hooks/useHapticFeedback'
 
 function HistoryView({ cartHistory, onBack, onRestoreCart }) {
   const [selectedCart, setSelectedCart] = useState(null)
-  const { onButtonPress, onSuccess } = useHapticFeedback()
+  const { onButtonPress } = useHapticFeedback()
 
 
   const formatTime = (dateString) => {

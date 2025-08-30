@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import RemoveIcon from './RemoveIcon'
-import TrashIcon from './TrashIcon'
 import PlusIcon from './PlusIcon'
 import SimplePlusIcon from './SimplePlusIcon'
 import WhatsAppIcon from './icons/WhatsAppIcon'

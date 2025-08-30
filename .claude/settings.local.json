@@ -19,7 +19,12 @@
       "Bash(cp:*)",
       "Bash(npm run preview:*)",
       "Bash(npx serve:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(xxd:*)",
+      "Bash(find:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npm run typecheck:*)"
     ],
     "deny": []
   }

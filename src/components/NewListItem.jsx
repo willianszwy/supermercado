@@ -1,4 +1,3 @@
-import React from 'react'
 import PlusIcon from './PlusIcon'
 import TrashIcon from './TrashIcon'
 import CheckmarkIcon from './CheckmarkIcon'
@@ -19,13 +18,12 @@ function NewListItem({ product, isSelected, onAddProduct, onRemoveProduct, selec
     handleMouseDown,
     handleTouchStart,
     handleAddAction,
-    handleDeleteAction,
+    // handleDeleteAction, // Available if needed later
     dragThreshold,
   } = useNewListGestureHandler({ 
     product, 
     onAddProduct, 
-    onRemoveProduct, 
-    isSelected 
+    onRemoveProduct
   })
 
   const getDragClasses = () => {

@@ -6,7 +6,7 @@ const MENU_REVEAL_THRESHOLD = 60
 const MENU_COMPLETE_THRESHOLD = 120
 const SENSITIVITY_THRESHOLD = 30
 
-export function useNewListGestureHandler({ product, onAddProduct, onRemoveProduct, isSelected }) {
+export function useNewListGestureHandler({ product, onAddProduct, onRemoveProduct }) {
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState(0)
   const [dragDirection, setDragDirection] = useState(null)
@@ -95,7 +95,7 @@ export function useNewListGestureHandler({ product, onAddProduct, onRemoveProduc
       setShowActionMenu(false)
       setMenuStage('hidden')
     }
-  }, [])
+  }, [showPreview, menuStage])
 
   const handleEnd = useCallback(() => {
     if (!isDragging) {
@@ -120,7 +120,7 @@ export function useNewListGestureHandler({ product, onAddProduct, onRemoveProduc
     if (menuStage !== 'revealed') {
       resetMenuState()
     }
-  }, [isDragging, dragOffset, product, onAddProduct, onRemoveProduct, menuStage, resetDragState, resetMenuState])
+  }, [isDragging, dragOffset, product, onAddProduct, onRemoveProduct, resetDragState, resetMenuState, menuStage])
 
   const cancelGesture = useCallback(() => {
     resetDragState()

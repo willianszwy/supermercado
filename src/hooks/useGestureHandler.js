@@ -96,7 +96,7 @@ export function useGestureHandler({ item, onUpdateStatus, onEdit }) {
       setShowActionMenu(false)
       setMenuStage('hidden')
     }
-  }, [])
+  }, [showPreview, menuStage])
 
   const handleEnd = useCallback(() => {
     if (!isDragging || item.status !== 'pending') {
@@ -121,7 +121,7 @@ export function useGestureHandler({ item, onUpdateStatus, onEdit }) {
     if (menuStage !== 'revealed') {
       resetMenuState()
     }
-  }, [isDragging, dragOffset, item.status, item.id, onUpdateStatus, menuStage, resetDragState, resetMenuState])
+  }, [isDragging, dragOffset, item.status, item.id, onUpdateStatus, resetDragState, resetMenuState, menuStage])
 
   const cancelGesture = useCallback(() => {
     resetDragState()
