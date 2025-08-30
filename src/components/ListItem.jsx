@@ -12,9 +12,9 @@ function ListItem({ item, onUpdateStatus, statusType, onEdit }) {
   const [showActionMenu, setShowActionMenu] = useState(false)
   const [menuStage, setMenuStage] = useState('hidden') // 'hidden' | 'revealed' | 'action'
   const startPosRef = useRef(0)
-  const dragThreshold = 80 // Aumentado para melhor feedback
-  const menuRevealThreshold = 40 // Threshold para revelar menu
-  const menuCompleteThreshold = 80 // Threshold para ação "em falta"
+  const dragThreshold = 120 // Aumentado para menos sensibilidade no mobile
+  const menuRevealThreshold = 60 // Threshold para revelar menu
+  const menuCompleteThreshold = 120 // Threshold para ação "em falta"
 
 
   const handleStart = (clientX) => {
@@ -37,7 +37,7 @@ function ListItem({ item, onUpdateStatus, statusType, onEdit }) {
     
     
     // Atualizar direção baseado no offset
-    if (Math.abs(offset) > 20) {
+    if (Math.abs(offset) > 30) { // Aumentado de 20 para 30 para menos sensibilidade
       const direction = offset > 0 ? 'right' : 'left'
       setDragDirection(direction)
       
@@ -50,17 +50,17 @@ function ListItem({ item, onUpdateStatus, statusType, onEdit }) {
         // Swipe esquerda: novo sistema de menu
         const absOffset = Math.abs(offset)
         if (absOffset >= menuRevealThreshold && absOffset < menuCompleteThreshold) {
-          // Etapa 1: Menu revelado (40-80px)
+          // Etapa 1: Menu revelado (60-120px)
           setShowActionMenu(true)
           setMenuStage('revealed')
           setShowPreview(false)
         } else if (absOffset >= menuCompleteThreshold) {
-          // Etapa 2: Ação "em falta" (80px+)
+          // Etapa 2: Ação "em falta" (120px+)
           setShowActionMenu(false)
           setMenuStage('action')
           setShowPreview(true)
         } else {
-          // Menos de 40px: esconder menu
+          // Menos de 60px: esconder menu
           setShowActionMenu(false)
           setMenuStage('hidden')
           setShowPreview(false)
@@ -120,7 +120,7 @@ function ListItem({ item, onUpdateStatus, statusType, onEdit }) {
     
     
     // Atualizar direção baseado no offset
-    if (Math.abs(offset) > 20) {
+    if (Math.abs(offset) > 30) { // Aumentado de 20 para 30 para menos sensibilidade
       const direction = offset > 0 ? 'right' : 'left'
       setDragDirection(direction)
       
@@ -133,17 +133,17 @@ function ListItem({ item, onUpdateStatus, statusType, onEdit }) {
         // Swipe esquerda: novo sistema de menu
         const absOffset = Math.abs(offset)
         if (absOffset >= menuRevealThreshold && absOffset < menuCompleteThreshold) {
-          // Etapa 1: Menu revelado (40-80px)
+          // Etapa 1: Menu revelado (60-120px)
           setShowActionMenu(true)
           setMenuStage('revealed')
           setShowPreview(false)
         } else if (absOffset >= menuCompleteThreshold) {
-          // Etapa 2: Ação "em falta" (80px+)
+          // Etapa 2: Ação "em falta" (120px+)
           setShowActionMenu(false)
           setMenuStage('action')
           setShowPreview(true)
         } else {
-          // Menos de 40px: esconder menu
+          // Menos de 60px: esconder menu
           setShowActionMenu(false)
           setMenuStage('hidden')
           setShowPreview(false)
@@ -202,7 +202,7 @@ function ListItem({ item, onUpdateStatus, statusType, onEdit }) {
     
     
     // Atualizar direção baseado no offset
-    if (Math.abs(offset) > 20) {
+    if (Math.abs(offset) > 30) { // Aumentado de 20 para 30 para menos sensibilidade
       const direction = offset > 0 ? 'right' : 'left'
       setDragDirection(direction)
       
@@ -215,17 +215,17 @@ function ListItem({ item, onUpdateStatus, statusType, onEdit }) {
         // Swipe esquerda: novo sistema de menu
         const absOffset = Math.abs(offset)
         if (absOffset >= menuRevealThreshold && absOffset < menuCompleteThreshold) {
-          // Etapa 1: Menu revelado (40-80px)
+          // Etapa 1: Menu revelado (60-120px)
           setShowActionMenu(true)
           setMenuStage('revealed')
           setShowPreview(false)
         } else if (absOffset >= menuCompleteThreshold) {
-          // Etapa 2: Ação "em falta" (80px+)
+          // Etapa 2: Ação "em falta" (120px+)
           setShowActionMenu(false)
           setMenuStage('action')
           setShowPreview(true)
         } else {
-          // Menos de 40px: esconder menu
+          // Menos de 60px: esconder menu
           setShowActionMenu(false)
           setMenuStage('hidden')
           setShowPreview(false)
@@ -366,40 +366,61 @@ function ListItem({ item, onUpdateStatus, statusType, onEdit }) {
       className={`item-card ${getStatusClasses()} border-2 rounded-lg p-2.5 sm:p-3 mb-1.5 shadow-sm transition-all duration-300 select-none min-h-[60px] ${isDragging ? 'cursor-grabbing opacity-90 transform rotate-1 shadow-lg' : 'cursor-grab'} ${getDragClasses()} relative overflow-hidden`}
       style={{ 
         transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
-        touchAction: item.status === 'pending' ? 'pan-y' : 'auto' // Permite scroll vertical, bloqueia horizontal
+        touchAction: item.status === 'pending' ? 'pan-y' : 'auto', // Permite scroll vertical, bloqueia horizontal
+        pointerEvents: showActionMenu && menuStage === 'revealed' ? 'none' : 'auto'
       }}
-      onPointerDown={handlePointerDown}
+      onPointerDown={showActionMenu && menuStage === 'revealed' ? undefined : handlePointerDown}
       onPointerMove={isDragging ? handlePointerMove : undefined}
       onPointerUp={isDragging ? handlePointerUp : undefined}
-      onMouseDown={handleMouseDown}
-      onTouchStart={handleTouchStart}
+      onMouseDown={showActionMenu && menuStage === 'revealed' ? undefined : handleMouseDown}
+      onTouchStart={showActionMenu && menuStage === 'revealed' ? undefined : handleTouchStart}
     >
       {/* Action Menu - botões deslizantes fixos no lado direito */}
       {showActionMenu && menuStage === 'revealed' && (
-        <div className="absolute inset-y-0 right-0 flex items-center z-10">
+        <div className="absolute inset-y-0 right-0 flex items-center z-20 pointer-events-auto">
           <button
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
               onEdit && onEdit(item)
               setShowActionMenu(false)
               setMenuStage('hidden')
             }}
-            className="w-20 h-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-colors"
+            onPointerDown={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+            }}
+            onTouchStart={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+            }}
+            className="w-20 h-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-colors cursor-pointer touch-manipulation"
             title="Editar"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
           </button>
           <button
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
               onUpdateStatus(item.id, 'delete')
               setShowActionMenu(false)
               setMenuStage('hidden')
             }}
-            className="w-20 h-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-colors"
+            onPointerDown={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+            }}
+            onTouchStart={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+            }}
+            className="w-20 h-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-colors cursor-pointer touch-manipulation"
             title="Excluir"
           >
-            <RemoveIcon className="w-5 h-5" />
+            <RemoveIcon className="w-5 h-5 pointer-events-none" />
           </button>
         </div>
       )}
@@ -430,7 +451,7 @@ function ListItem({ item, onUpdateStatus, statusType, onEdit }) {
         }`} />
       )}
 
-      <div className="flex justify-between items-center relative z-20">
+      <div className="flex justify-between items-center relative z-20" style={{ pointerEvents: showActionMenu && menuStage === 'revealed' ? 'none' : 'auto' }}>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3">
             <div className="flex flex-col">
@@ -448,7 +469,11 @@ function ListItem({ item, onUpdateStatus, statusType, onEdit }) {
         
         <div className="flex items-center gap-3 ml-4 flex-shrink-0">
           <div className="flex flex-col items-end min-w-0">
-            <div className="item-quantity text-white text-sm bg-slate-600 px-2.5 py-1.5 rounded-full font-bold text-center whitespace-nowrap">
+            <div 
+              className={`item-quantity text-white text-sm bg-slate-600 px-2.5 py-1.5 rounded-full font-bold text-center whitespace-nowrap transition-opacity duration-200 ${
+                showActionMenu && menuStage === 'revealed' ? 'opacity-0' : 'opacity-100'
+              }`}
+            >
               {item.quantity}
             </div>
           </div>
