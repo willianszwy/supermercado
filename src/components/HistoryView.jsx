@@ -4,16 +4,6 @@ import CartIcon from './CartIcon'
 function HistoryView({ cartHistory, onBack, onRestoreCart }) {
   const [selectedCart, setSelectedCart] = useState(null)
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
 
   const formatTime = (dateString) => {
     const date = new Date(dateString)

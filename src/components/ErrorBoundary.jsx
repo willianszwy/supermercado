@@ -51,7 +51,7 @@ class ErrorBoundary extends React.Component {
                   Recarregar Página
                 </button>
               </div>
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env?.DEV && this.state.error && (
                 <details className="mt-4 text-left">
                   <summary className="text-xs text-gray-500 cursor-pointer">Detalhes do erro (dev)</summary>
                   <pre className="text-xs bg-gray-100 p-2 rounded mt-2 overflow-auto">

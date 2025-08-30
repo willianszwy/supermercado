@@ -419,7 +419,7 @@ function BulkImportModal({ onImport, onClose }) {
           cleanLine.includes('Lista de Compras') ||
           cleanLine.includes('Estimativa Total') ||
           cleanLine.includes('Valores sugeridos') ||
-          cleanLine.match(/^[📝✨🔹💰\*\-\s]*$/) ||
+          cleanLine.match(/^[📝✨🔹💰*\-\s]*$/u) ||
           cleanLine.match(/^\*.*\*$/) ||
           cleanLine.match(/^_.*_$/) ||
           cleanLine.match(/^https?:\/\//i) ||
@@ -435,7 +435,7 @@ function BulkImportModal({ onImport, onClose }) {
         const name = normalizeProductText(csvWithPriceMatch[1].trim())
         const quantity = parseInt(csvWithPriceMatch[2]) || 1
         const price = parsePrice(csvWithPriceMatch[3]) || 0
-        if (name && name.length > 1 && name.length < 40 && !name.match(/^[0-9\s\$\.,]+$/)) {
+        if (name && name.length > 1 && name.length < 40 && !name.match(/^[0-9\s$.,]+$/)) {
           products.push({ name, quantity, price })
         }
         continue
@@ -446,7 +446,7 @@ function BulkImportModal({ onImport, onClose }) {
       if (csvMatch) {
         const name = normalizeProductText(csvMatch[1].trim())
         const quantity = parseInt(csvMatch[2]) || 1
-        if (name && name.length > 1 && name.length < 40 && !name.match(/^[0-9\s\$\.,]+$/)) {
+        if (name && name.length > 1 && name.length < 40 && !name.match(/^[0-9\s$.,]+$/)) {
           products.push({ name, quantity, price: 0 })
         }
         continue
@@ -460,7 +460,7 @@ function BulkImportModal({ onImport, onClose }) {
         if (name && 
             name.length > 1 && 
             name.length < 40 && 
-            !name.match(/^[0-9\s\$\.,]+$/) &&
+            !name.match(/^[0-9\s$.,]+$/) &&
             name.split(' ').length <= 5) {
           products.push({ name, quantity, price: 0 })
         }
@@ -698,7 +698,7 @@ function WhatsAppImportModal({ onImport, onClose }) {
           cleanLine.includes('Estimativa Total') ||
           cleanLine.includes('Generated with') ||
           cleanLine.includes('Claude Code') ||
-          cleanLine.match(/^[📝✨🔹💰\*\-\s]*$/) ||
+          cleanLine.match(/^[📝✨🔹💰*\-\s]*$/u) ||
           cleanLine.match(/^\*.*\*$/) ||  // Linhas entre asteriscos
           cleanLine.match(/^_.*_$/) ||    // Linhas entre underlines
           cleanLine.match(/^R\$\s*[\d,.]+ ?\*?$/) || // Apenas valores monetários
@@ -727,8 +727,8 @@ function WhatsAppImportModal({ onImport, onClose }) {
       }
 
       // Ignorar linhas que são só formatação/separadores
-      if (cleanLine.match(/^[\s\*\-\=\_\~\`\#\+\.\!\?]*$/) ||
-          cleanLine.match(/^[📝✨🔹🛒💚❤️🎉💰\s]*$/) ||
+      if (cleanLine.match(/^[\s*\-=_~`#+.!?]*$/) ||
+          /^[\u{1F4DD}\u{2728}\u{1F539}\u{1F6D2}\u{1F49A}\u{2764}\u{1F389}\u{1F4B0}\s]*$/u.test(cleanLine) ||
           cleanLine.length < 2 ||
           cleanLine.length > 50) { // Muito longo provavelmente não é produto
         continue
@@ -855,8 +855,8 @@ function WhatsAppImportModal({ onImport, onClose }) {
         if (name && 
             name.length > 1 && 
             name.length < 40 && // Nome não pode ser muito longo
-            !name.match(/^[0-9\s\$\.,]+$/) && // Não pode ser só números/símbolos
-            !name.match(/^\d+[\.,]\d+$/) && // Não pode ser só um número decimal
+            !name.match(/^[0-9\s$.,]+$/) && // Não pode ser só números/símbolos
+            !name.match(/^\d+[.,]\d+$/) && // Não pode ser só um número decimal
             name.split(' ').length <= 5) { // Máximo 5 palavras
           products.push({ name, quantity, category: currentCategory, price })
         }
@@ -917,7 +917,7 @@ function WhatsAppImportModal({ onImport, onClose }) {
               <li>1. Copie a lista de compras do WhatsApp</li>
               <li>2. Cole aqui usando o botão ou Ctrl+V</li>
               <li>3. Confira os produtos encontrados</li>
-              <li>4. Clique em "Importar"</li>
+              <li>4. Clique em &quot;Importar&quot;</li>
             </ol>
           </div>
 
