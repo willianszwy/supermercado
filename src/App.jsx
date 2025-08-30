@@ -7,6 +7,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { normalizeProductText } from './utils/textUtils'
 import { generateUniqueId } from './utils/idUtils'
+import { validateProductInput } from './utils/validationUtils'
 
 function App() {
   const [currentView, setCurrentView] = useState('main')
@@ -55,18 +56,30 @@ function App() {
   }, [hasSeenTour, currentView])
 
   const addProduct = (name, quantity, category = 'geral', price = 0) => {
-    const normalizedName = normalizeProductText(name)
+    // Validate input before processing
+    const validation = validateProductInput({ name, quantity, price, category })
     
-    if (!normalizedName) return // Não adiciona se o nome estiver vazio após normalização
+    if (!validation.valid) {
+      // Show error to user (you may want to add error state for UI feedback)
+      console.error('Product validation failed:', validation.error)
+      return { success: false, error: validation.error }
+    }
+
+    const validatedData = validation.value
+    const normalizedName = normalizeProductText(validatedData.name)
+    
+    if (!normalizedName) {
+      return { success: false, error: 'Nome do produto inválido após normalização' }
+    }
     
     const product = {
       id: generateUniqueId(),
       name: normalizedName,
-      quantity,
-      category,
+      quantity: validatedData.quantity,
+      category: validatedData.category,
       status: 'pending',
       addedAt: new Date().toISOString(),
-      price: parseFloat(price) || 0
+      price: validatedData.price
     }
 
     setCurrentList(prev => [...prev, product])
@@ -77,19 +90,21 @@ function App() {
       if (!existing) {
         return [...prev, {
           name: normalizedName,
-          category,
-          lastQuantity: quantity,
+          category: validatedData.category,
+          lastQuantity: validatedData.quantity,
           lastUsed: new Date().toISOString(),
-          suggestedPrice: parseFloat(price) || 0
+          suggestedPrice: validatedData.price
         }]
       } else {
         return prev.map(p => 
           p.name.toLowerCase() === normalizedName.toLowerCase()
-            ? { ...p, category, lastQuantity: quantity, lastUsed: new Date().toISOString(), suggestedPrice: parseFloat(price) || p.suggestedPrice || 0 }
+            ? { ...p, category: validatedData.category, lastQuantity: validatedData.quantity, lastUsed: new Date().toISOString(), suggestedPrice: validatedData.price || p.suggestedPrice || 0 }
             : p
         )
       }
     })
+
+    return { success: true }
   }
 
   const updateProductStatus = (id, status) => {

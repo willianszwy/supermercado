@@ -36,18 +36,26 @@ function TabNavigation({ activeTab, onTabChange, pendingCount, completedCount, m
   return (
     <div className="tab-navigation bg-white border-b-2 border-gray-100 sticky top-0 z-30">
       <div className="flex justify-center">
-        <div className="flex bg-gray-100 rounded-lg p-1 m-4">
+        <div 
+          className="flex bg-gray-100 rounded-lg p-1 m-4"
+          role="tablist"
+          aria-label="Navegação entre categorias de produtos"
+        >
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={`
-                tab-button relative flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-md font-semibold transition-all duration-200
+                tab-button relative flex items-center gap-2 px-4 py-3 rounded-md font-semibold transition-all duration-200 min-h-[44px] min-w-[44px]
                 ${activeTab === tab.id 
                   ? `bg-white text-${tab.color}-700 shadow-sm` 
                   : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                 }
               `}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`tab-panel-${tab.id}`}
+              id={`tab-${tab.id}`}
             >
               {/* Ícone */}
               <tab.icon className={`tab-icon w-4 h-4 sm:w-4 sm:h-4 ${activeTab === tab.id ? `text-${tab.color}-600` : 'text-gray-500'}`} />

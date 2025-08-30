@@ -34,7 +34,11 @@ function ListSection({ title, items, onUpdateStatus, onEdit, statusType, isEmpty
               Adicione produtos à sua lista
             </div>
           ) : items.length === 0 ? null : (
-            <ul className="list-none">
+            <ul 
+              className="list-none"
+              role="list"
+              aria-label={hideTitle ? "Itens da categoria" : title}
+            >
               {items.map(item => (
                 <ListItem
                   key={item.id}

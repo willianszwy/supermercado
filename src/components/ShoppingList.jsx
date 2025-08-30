@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import ListSection from './ListSection'
 import FloatingAddButton from './FloatingAddButton'
 import ConfirmDialog from './ConfirmDialog'
@@ -17,15 +17,33 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onUpdateProdu
   const [collapsedCategories, setCollapsedCategories] = useState(new Set())
   const [activeTab, setActiveTab] = useState('pending')
   const [editingItem, setEditingItem] = useState(null)
+  const [lastStatusChange, setLastStatusChange] = useState('')
   
-  const pendingItems = currentList.filter(item => item.status === 'pending')
-  const completedItems = currentList.filter(item => item.status === 'completed')
-  const missingItems = currentList.filter(item => item.status === 'missing')
+  // Memoize expensive filtering and categorization operations
+  const filteredItems = useMemo(() => ({
+    pending: currentList.filter(item => item.status === 'pending'),
+    completed: currentList.filter(item => item.status === 'completed'),
+    missing: currentList.filter(item => item.status === 'missing')
+  }), [currentList])
 
-  // Usar a nova função que já ordena por rota de compras
-  const categoriesWithPendingItems = getCategoriesWithItems(pendingItems)
+  // Memoize category organization for pending items
+  const categoriesWithPendingItems = useMemo(() => 
+    getCategoriesWithItems(filteredItems.pending), 
+    [filteredItems.pending]
+  )
 
-  const toggleCategoryCollapse = (categoryId) => {
+  // Memoize expensive price calculations
+  const priceCalculations = useMemo(() => {
+    const pending = filteredItems.pending.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0)
+    const completed = filteredItems.completed.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0)
+    const missing = filteredItems.missing.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0)
+    const total = currentList.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0)
+    
+    return { pending, completed, missing, total }
+  }, [filteredItems.pending, filteredItems.completed, filteredItems.missing, currentList])
+
+  // Memoize callback functions to prevent unnecessary re-renders
+  const toggleCategoryCollapse = useCallback((categoryId) => {
     setCollapsedCategories(prev => {
       const newSet = new Set(prev)
       if (newSet.has(categoryId)) {
@@ -35,21 +53,44 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onUpdateProdu
       }
       return newSet
     })
-  }
+  }, [])
 
-  const handleClearList = () => {
+  const handleClearList = useCallback(() => {
     onClearList()
     setShowConfirmDialog(false)
-  }
+  }, [onClearList])
 
-  const handleEditItem = (item) => {
+  const handleEditItem = useCallback((item) => {
     setEditingItem(item)
-  }
+  }, [])
 
-  const handleUpdateProduct = (id, newData) => {
+  const handleUpdateProduct = useCallback((id, newData) => {
     onUpdateProduct(id, newData)
     setEditingItem(null)
-  }
+  }, [onUpdateProduct])
+
+  // Enhanced status update with ARIA announcements
+  const handleUpdateStatus = useCallback((id, status) => {
+    const item = currentList.find(i => i.id === id)
+    if (item) {
+      let message = ''
+      switch (status) {
+        case 'completed':
+          message = `${item.name} marcado como comprado`
+          break
+        case 'missing':
+          message = `${item.name} marcado como em falta`
+          break
+        case 'delete':
+          message = `${item.name} removido da lista`
+          break
+        default:
+          message = `Status de ${item.name} atualizado`
+      }
+      setLastStatusChange(message)
+    }
+    onUpdateStatus(id, status)
+  }, [currentList, onUpdateStatus])
 
   const handleCancelEdit = () => {
     setEditingItem(null)
@@ -94,6 +135,15 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onUpdateProdu
 
   return (
     <>
+      {/* ARIA Live Region for status change announcements */}
+      <div 
+        aria-live="polite" 
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {lastStatusChange}
+      </div>
+
       <header className="py-3 flex justify-between items-center border-b-2 border-primary-blue mb-3">
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold text-primary-blue">
@@ -125,17 +175,22 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onUpdateProdu
       <TabNavigation
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        pendingCount={pendingItems.length}
-        completedCount={completedItems.length}
-        missingCount={missingItems.length}
+        pendingCount={filteredItems.pending.length}
+        completedCount={filteredItems.completed.length}
+        missingCount={filteredItems.missing.length}
       />
 
       <main className="px-3">
         {/* Conteúdo baseado na aba ativa */}
         {activeTab === 'pending' && (
-          <div className="tab-content">
+          <div 
+            className="tab-content"
+            role="tabpanel"
+            id="tab-panel-pending"
+            aria-labelledby="tab-pending"
+          >
             {/* Header de rota sugerida */}
-            {pendingItems.length > 0 && (
+            {filteredItems.pending.length > 0 && (
               <div className="route-suggestion mb-3 p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -161,7 +216,7 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onUpdateProdu
             )}
 
             {/* Lista de Pendentes por Categoria */}
-            {pendingItems.length > 0 ? (
+            {filteredItems.pending.length > 0 ? (
               <div className="space-y-2" data-tour="pending-section">
                 {categoriesWithPendingItems.map((categoryWithItems) => {
                   const isCollapsed = collapsedCategories.has(categoryWithItems.id)
@@ -179,7 +234,7 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onUpdateProdu
                         <div>
                           <ListSection
                             items={categoryWithItems.items}
-                            onUpdateStatus={onUpdateStatus}
+                            onUpdateStatus={handleUpdateStatus}
                             onEdit={handleEditItem}
                             hideTitle={true}
                           />
@@ -205,11 +260,16 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onUpdateProdu
 
         {/* Aba Comprados */}
         {activeTab === 'completed' && (
-          <div className="tab-content py-4">
+          <div 
+            className="tab-content py-4"
+            role="tabpanel"
+            id="tab-panel-completed"
+            aria-labelledby="tab-completed"
+          >
             <ListSection
               title="Itens Comprados"
-              items={completedItems}
-              onUpdateStatus={onUpdateStatus}
+              items={filteredItems.completed}
+              onUpdateStatus={handleUpdateStatus}
               onEdit={handleEditItem}
               statusType="completed"
               dataTour="completed-section"
@@ -220,11 +280,16 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onUpdateProdu
 
         {/* Aba Em Falta */}
         {activeTab === 'missing' && (
-          <div className="tab-content py-4">
+          <div 
+            className="tab-content py-4"
+            role="tabpanel"
+            id="tab-panel-missing"
+            aria-labelledby="tab-missing"
+          >
             <ListSection
               title="Itens em Falta"
-              items={missingItems}
-              onUpdateStatus={onUpdateStatus}
+              items={filteredItems.missing}
+              onUpdateStatus={handleUpdateStatus}
               onEdit={handleEditItem}
               statusType="missing"
               dataTour="missing-section"
@@ -248,25 +313,25 @@ function ShoppingList({ currentList, onAddProduct, onUpdateStatus, onUpdateProdu
                 <div>
                   <p className="text-gray-600">Pendentes:</p>
                   <p className="font-bold text-blue-900">
-                    {formatPrice(pendingItems.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0))}
+                    {formatPrice(priceCalculations.pending)}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-600">Comprados:</p>
                   <p className="font-bold text-green-700">
-                    {formatPrice(completedItems.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0))}
+                    {formatPrice(priceCalculations.completed)}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-600">Em Falta:</p>
                   <p className="font-bold text-red-600">
-                    {formatPrice(missingItems.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0))}
+                    {formatPrice(priceCalculations.missing)}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-600">Total Geral:</p>
                   <p className="font-bold text-lg text-blue-900">
-                    {formatPrice(currentList.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0))}
+                    {formatPrice(priceCalculations.total)}
                   </p>
                 </div>
               </div>

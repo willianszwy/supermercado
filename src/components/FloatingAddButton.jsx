@@ -45,6 +45,13 @@ function FloatingAddButton({ onAddProduct, editingItem, onEditProduct, onCancelE
           onClick={openModal}
           className="fab-optimized bg-primary-green text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center text-2xl font-bold hover:bg-primary-green-dark touch-target-expanded"
           data-tour="add-button"
+          aria-label="Adicionar novo produto à lista"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              openModal()
+            }
+          }}
         >
           <PlusIcon className="w-8 h-8" />
         </button>
@@ -106,7 +113,7 @@ function AddProductModal({ onAddProduct, onClose, isEditMode = false, editingIte
             {step === 2 && (
               <button
                 onClick={goBackToProduct}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+                className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
               >
                 ←
               </button>
@@ -119,7 +126,7 @@ function AddProductModal({ onAddProduct, onClose, isEditMode = false, editingIte
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+            className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
           >
             <RemoveIcon className="w-4 h-4 text-gray-500" />
           </button>

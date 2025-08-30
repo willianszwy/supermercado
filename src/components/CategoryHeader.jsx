@@ -1,3 +1,4 @@
+import React from 'react'
 import { getCategoryColor } from '../utils/categories'
 
 function CategoryHeader({ category, itemCount, isCollapsed, onToggle }) {
@@ -31,4 +32,4 @@ function CategoryHeader({ category, itemCount, isCollapsed, onToggle }) {
   )
 }
 
-export default CategoryHeader
+export default React.memo(CategoryHeader)
