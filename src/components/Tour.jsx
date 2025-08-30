@@ -5,7 +5,7 @@ const tourSteps = [
   {
     id: 'welcome',
     title: '👋 Bem-vindo ao SwipeCart!',
-    content: 'Sua lista de compras inteligente com gestos! Criamos alguns produtos de exemplo para você praticar. Vamos fazer um tour rápido?',
+    content: 'Sua lista de compras inteligente com gestos aprimorados! Interface redesenhada com itens integrados às categorias e sistema de drag melhorado. Vamos fazer um tour rápido?',
     target: null,
     position: 'center'
   },
@@ -25,22 +25,29 @@ const tourSteps = [
   },
   {
     id: 'categories',
-    title: '🎯 Categorias Organizadas',
-    content: 'Seus itens são agrupados por categorias do supermercado (Hortifrúti, Açougue, etc) na ordem ideal para suas compras!',
+    title: '🎯 Categorias Integradas',
+    content: 'Seus itens estão perfeitamente integrados às categorias do supermercado! Cada categoria mostra quantos itens você tem e pode ser recolhida tocando no cabeçalho.',
     target: '[data-tour="pending-section"]',
     position: 'bottom'
   },
   {
-    id: 'drag-gesture',
-    title: '👆 Gestos Inteligentes',
-    content: 'Arraste os itens para DIREITA (✅ comprado) ou ESQUERDA (❌ em falta). Experimente com os produtos de exemplo!',
+    id: 'drag-right',
+    title: '👆 Arraste para Direita',
+    content: 'Arraste qualquer item para a DIREITA (✅) para marcar como comprado. O item move livremente e fica verde quando completar o gesto!',
     target: '[data-tour="pending-section"]',
     position: 'bottom'
   },
   {
-    id: 'edit-gesture',
-    title: '✏️ Editar Itens',
-    content: 'Segure qualquer item por 2 segundos (long press) para editá-lo! Você pode alterar nome, quantidade, categoria e preço. O item ficará com borda azul durante o toque.',
+    id: 'drag-left',
+    title: '👈 Arraste para Esquerda',
+    content: 'Arraste para ESQUERDA para revelar o menu de ações! Arraste pouco (60px) para ver botões de Editar e Excluir, ou muito (120px) para marcar como "em falta" ❌.',
+    target: '[data-tour="pending-section"]',
+    position: 'bottom'
+  },
+  {
+    id: 'edit-actions',
+    title: '✏️ Editar e Excluir',
+    content: 'Quando arrastar para esquerda aparecem botões azul (Editar) e vermelho (Excluir). A quantidade fica oculta para dar mais espaço aos botões!',
     target: '[data-tour="pending-section"]',
     position: 'bottom'
   },
@@ -68,7 +75,7 @@ const tourSteps = [
   {
     id: 'finish',
     title: '🎉 Pronto!',
-    content: 'Agora você domina o SwipeCart! Comece adicionando produtos, arraste-os conforme compra e compartilhe suas listas. Boa compra! 🛒',
+    content: 'Agora você domina o novo SwipeCart! Interface integrada, gestos mais precisos e controles aprimorados. Arraste para direita (comprar), esquerda (menu de ações) e compartilhe suas listas. Boa compra! 🛒',
     target: null,
     position: 'center'
   }
