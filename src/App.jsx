@@ -4,7 +4,9 @@ import NewListView from './components/NewListView'
 import HistoryView from './components/HistoryView'
 import Tour from './components/Tour'
 import ErrorBoundary from './components/ErrorBoundary'
+import MigrationHandler from './components/MigrationHandler'
 import { useLocalStorage } from './hooks/useLocalStorage'
+import { useIndexedDB } from './hooks/useIndexedDB'
 import { normalizeProductText } from './utils/textUtils'
 import { generateUniqueId } from './utils/idUtils'
 import { validateProductInput } from './utils/validationUtils'
@@ -12,16 +14,21 @@ import { initializeHaptics } from './utils/hapticUtils'
 
 function App() {
   const [currentView, setCurrentView] = useState('main')
+  
+  // Temporarily use localStorage while we fix IndexedDB issues
   const [currentList, setCurrentList] = useLocalStorage('shoppingList', [])
   const [allProducts, setAllProducts] = useLocalStorage('allProducts', [])
   const [cartHistory, setCartHistory] = useLocalStorage('cartHistory', [])
   const [showTour, setShowTour] = useState(false)
   const [hasSeenTour, setHasSeenTour] = useLocalStorage('hasSeenTour', false)
   const [, setGestureInteractionCount] = useLocalStorage('gestureInteractionCount', 0)
+  
+  // No loading state needed for localStorage
+  const isLoading = false
 
   // Criar lista de exemplo na primeira instalação
   useEffect(() => {
-    if (!hasSeenTour && currentView === 'main' && currentList.length === 0) {
+    if (!isLoading && !hasSeenTour && currentView === 'main' && currentList.length === 0) {
       const exampleList = [
         { id: generateUniqueId(), name: 'Banana', quantity: 6, category: 'hortifruti', status: 'pending', addedAt: new Date().toISOString(), price: 3.99 },
         { id: generateUniqueId(), name: 'Leite Integral', quantity: 2, category: 'laticinios', status: 'pending', addedAt: new Date().toISOString(), price: 5.49 },
@@ -44,7 +51,7 @@ function App() {
       }))
       setAllProducts(exampleProducts)
     }
-  }, [hasSeenTour, currentView, currentList.length, setCurrentList, setAllProducts])
+  }, [isLoading, hasSeenTour, currentView, currentList.length, setCurrentList, setAllProducts])
 
   // Initialize haptic feedback system
   useEffect(() => {
@@ -63,13 +70,13 @@ function App() {
 
   // Mostrar tour automaticamente na primeira visita
   useEffect(() => {
-    if (!hasSeenTour && currentView === 'main') {
+    if (!isLoading && !hasSeenTour && currentView === 'main') {
       const timer = setTimeout(() => {
         setShowTour(true)
       }, 1500) // Delay maior para carregar a lista de exemplo
       return () => clearTimeout(timer)
     }
-  }, [hasSeenTour, currentView])
+  }, [isLoading, hasSeenTour, currentView])
 
   const addProduct = (name, quantity, category = 'geral', price = 0) => {
     // Validate input before processing
@@ -257,53 +264,65 @@ function App() {
     setCurrentView('main')
   }
 
-  return (
-    <ErrorBoundary>
-      <div className="min-h-screen bg-white">
-        <div className="max-w-md mx-auto px-5">
-          {currentView === 'main' ? (
-            <ErrorBoundary>
-              <ShoppingList
-                currentList={currentList}
-                onAddProduct={addProduct}
-                onUpdateStatus={updateProductStatus}
-                onUpdateProduct={updateProduct}
-                onNewList={() => setCurrentView('newList')}
-                onClearList={clearList}
-                onShowTour={handleShowTour}
-                onFinishCart={finishCart}
-                onShowHistory={() => setCurrentView('history')}
-              />
-            </ErrorBoundary>
-          ) : currentView === 'newList' ? (
-            <ErrorBoundary>
-              <NewListView
-                allProducts={allProducts}
-                onCreateList={createNewList}
-                onBack={() => setCurrentView('main')}
-                onRemoveProduct={removeProduct}
-              />
-            </ErrorBoundary>
-          ) : currentView === 'history' ? (
-            <ErrorBoundary>
-              <HistoryView
-                cartHistory={cartHistory}
-                onBack={() => setCurrentView('main')}
-                onRestoreCart={restoreCart}
-              />
-            </ErrorBoundary>
-          ) : null}
-          
-          {/* Tour Guide */}
-          <ErrorBoundary>
-            <Tour 
-              isOpen={showTour} 
-              onClose={handleCloseTour} 
-            />
-          </ErrorBoundary>
+  // Show loading screen while data is being loaded
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
         </div>
       </div>
-    </ErrorBoundary>
+    )
+  }
+
+  return (
+    <ErrorBoundary>
+        <div className="min-h-screen bg-white">
+          <div className="max-w-md mx-auto px-5">
+            {currentView === 'main' ? (
+              <ErrorBoundary>
+                <ShoppingList
+                  currentList={currentList}
+                  onAddProduct={addProduct}
+                  onUpdateStatus={updateProductStatus}
+                  onUpdateProduct={updateProduct}
+                  onNewList={() => setCurrentView('newList')}
+                  onClearList={clearList}
+                  onShowTour={handleShowTour}
+                  onFinishCart={finishCart}
+                  onShowHistory={() => setCurrentView('history')}
+                />
+              </ErrorBoundary>
+            ) : currentView === 'newList' ? (
+              <ErrorBoundary>
+                <NewListView
+                  allProducts={allProducts}
+                  onCreateList={createNewList}
+                  onBack={() => setCurrentView('main')}
+                  onRemoveProduct={removeProduct}
+                />
+              </ErrorBoundary>
+            ) : currentView === 'history' ? (
+              <ErrorBoundary>
+                <HistoryView
+                  cartHistory={cartHistory}
+                  onBack={() => setCurrentView('main')}
+                  onRestoreCart={restoreCart}
+                />
+              </ErrorBoundary>
+            ) : null}
+            
+            {/* Tour Guide */}
+            <ErrorBoundary>
+              <Tour 
+                isOpen={showTour} 
+                onClose={handleCloseTour} 
+              />
+            </ErrorBoundary>
+          </div>
+        </div>
+      </ErrorBoundary>
   )
 }
 

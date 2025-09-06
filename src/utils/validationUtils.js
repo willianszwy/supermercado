@@ -97,7 +97,7 @@ export function validatePrice(price) {
 export function validateCategory(category) {
   // Valid categories from the app
   const validCategories = [
-    'geral', 'açougue', 'padaria', 'hortifruti', 'laticínios', 
+    'geral', 'acougue', 'padaria', 'hortifruti', 'laticinios', 
     'bebidas', 'limpeza', 'higiene', 'mercearia', 'congelados', 'bomboneria'
   ]
 
