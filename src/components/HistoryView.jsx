@@ -33,7 +33,9 @@ function HistoryView({ cartHistory, onBack, onRestoreCart }) {
   }, {})
 
   const sortedDates = Object.keys(groupedHistory).sort((a, b) => {
-    return new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-'))
+    const maxA = Math.max(...groupedHistory[a].map(c => new Date(c.finishedAt).getTime()))
+    const maxB = Math.max(...groupedHistory[b].map(c => new Date(c.finishedAt).getTime()))
+    return maxB - maxA
   })
 
   return (

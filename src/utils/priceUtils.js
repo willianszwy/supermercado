@@ -6,8 +6,8 @@
  * @returns {string} - Valor formatado (ex: "R$ 12,50")
  */
 export const formatPrice = (value) => {
-  if (!value || isNaN(value)) return 'R$ 0,00'
-  
+  if (value === null || value === undefined || isNaN(value)) return 'R$ 0,00'
+
   return value.toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL'
@@ -20,7 +20,7 @@ export const formatPrice = (value) => {
  * @returns {string} - Valor formatado (ex: "12,50")
  */
 export const formatPriceSimple = (value) => {
-  if (!value || isNaN(value)) return '0,00'
+  if (value === null || value === undefined || isNaN(value)) return '0,00'
   
   return value.toLocaleString('pt-BR', {
     minimumFractionDigits: 2,

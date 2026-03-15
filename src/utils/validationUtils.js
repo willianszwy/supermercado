@@ -1,4 +1,5 @@
 // XSS and input validation utilities
+import { CATEGORIES } from './categories'
 
 export function sanitizeInput(input) {
   if (typeof input !== 'string') return ''
@@ -95,17 +96,12 @@ export function validatePrice(price) {
 }
 
 export function validateCategory(category) {
-  // Valid categories from the app
-  const validCategories = [
-    'geral', 'açougue', 'padaria', 'hortifruti', 'laticínios', 
-    'bebidas', 'limpeza', 'higiene', 'mercearia', 'congelados', 'bomboneria'
-  ]
-
   if (!category || typeof category !== 'string') {
     return { valid: false, error: 'Categoria é obrigatória' }
   }
 
   const normalizedCategory = category.toLowerCase().trim()
+  const validCategories = Object.keys(CATEGORIES)
 
   if (!validCategories.includes(normalizedCategory)) {
     return { valid: false, error: 'Categoria inválida' }

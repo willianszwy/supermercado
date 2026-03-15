@@ -235,7 +235,7 @@ function AddProductModal({ onAddProduct, onClose }) {
   }
 
   const incrementQuantity = () => {
-    setQuantity(prev => prev + 1)
+    setQuantity(prev => Math.min(999, prev + 1))
   }
 
   const decrementQuantity = () => {

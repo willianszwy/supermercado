@@ -3,6 +3,7 @@ import ShoppingList from './components/ShoppingList'
 import NewListView from './components/NewListView'
 import HistoryView from './components/HistoryView'
 import Tour from './components/Tour'
+import ConfirmDialog from './components/ConfirmDialog'
 import ErrorBoundary from './components/ErrorBoundary'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { normalizeProductText } from './utils/textUtils'
@@ -18,6 +19,7 @@ function App() {
   const [showTour, setShowTour] = useState(false)
   const [hasSeenTour, setHasSeenTour] = useLocalStorage('hasSeenTour', false)
   const [, setGestureInteractionCount] = useLocalStorage('gestureInteractionCount', 0)
+  const [pendingOverwrite, setPendingOverwrite] = useState(null) // { type: 'restore'|'newList', payload }
 
   // Criar lista de exemplo na primeira instalação
   useEffect(() => {
@@ -141,45 +143,61 @@ function App() {
   }
 
   const updateProduct = (id, newData) => {
-    const normalizedName = normalizeProductText(newData.name)
-    
-    if (!normalizedName) return // Não atualiza se o nome estiver vazio após normalização
-    
-    setCurrentList(prev => 
-      prev.map(product => 
-        product.id === id 
-          ? { 
-              ...product, 
-              name: normalizedName,
-              quantity: newData.quantity,
-              category: newData.category,
-              price: parseFloat(newData.price) || 0
-            } 
+    const validation = validateProductInput({
+      name: newData.name,
+      quantity: String(newData.quantity),
+      price: newData.price,
+      category: newData.category
+    })
+
+    if (!validation.valid) {
+      console.error('updateProduct validation failed:', validation.error)
+      return { success: false, error: validation.error }
+    }
+
+    const { name: validatedName, quantity, category, price } = validation.value
+    const normalizedName = normalizeProductText(validatedName)
+
+    if (!normalizedName) return { success: false, error: 'Nome inválido' }
+
+    // Capture the OLD name before updating (needed to find catalog entry on rename)
+    const oldItem = currentList.find(p => p.id === id)
+    const oldName = oldItem ? oldItem.name : null
+
+    setCurrentList(prev =>
+      prev.map(product =>
+        product.id === id
+          ? { ...product, name: normalizedName, quantity, category, price }
           : product
       )
     )
 
-    // Update all products if exists
     setAllProducts(prev => {
-      const existing = prev.find(p => p.name.toLowerCase() === normalizedName.toLowerCase())
-      if (existing) {
-        return prev.map(p => 
-          p.name.toLowerCase() === normalizedName.toLowerCase()
-            ? { 
-                ...p, 
-                category: newData.category,
-                lastQuantity: newData.quantity,
-                lastUsed: new Date().toISOString(),
-                suggestedPrice: parseFloat(newData.price) || p.suggestedPrice || 0
-              }
-            : p
-        )
+      const byOldName = oldName
+        ? prev.findIndex(p => p.name.toLowerCase() === oldName.toLowerCase())
+        : -1
+      const byNewName = prev.findIndex(p => p.name.toLowerCase() === normalizedName.toLowerCase())
+
+      const updatedEntry = {
+        name: normalizedName,
+        category,
+        lastQuantity: quantity,
+        lastUsed: new Date().toISOString(),
+        suggestedPrice: price || 0
+      }
+
+      if (byOldName >= 0) {
+        return prev.map((p, i) => i === byOldName ? { ...p, ...updatedEntry } : p)
+      } else if (byNewName >= 0) {
+        return prev.map((p, i) => i === byNewName ? { ...p, ...updatedEntry } : p)
       }
       return prev
     })
+
+    return { success: true }
   }
 
-  const createNewList = (selectedProducts) => {
+  const executeCreateNewList = (selectedProducts) => {
     const newList = selectedProducts.map(({ name, quantity, category, price }) => ({
       id: generateUniqueId(),
       name,
@@ -192,23 +210,40 @@ function App() {
 
     setCurrentList(newList)
 
-    // Update last used for selected products
-    setAllProducts(prev => 
-      prev.map(product => {
-        const selected = selectedProducts.find(p => p.name === product.name)
-        if (selected) {
-          return {
-            ...product,
-            lastQuantity: selected.quantity,
-            lastUsed: new Date().toISOString(),
-            suggestedPrice: parseFloat(selected.price) || product.suggestedPrice || 0
-          }
+    // Upsert all selected products into the catalog (including new ones)
+    setAllProducts(prev => {
+      let updated = [...prev]
+      selectedProducts.forEach(({ name, quantity, category, price }) => {
+        const normalizedName = normalizeProductText(name)
+        if (!normalizedName) return
+        const existingIdx = updated.findIndex(
+          p => p.name.toLowerCase() === normalizedName.toLowerCase()
+        )
+        const entry = {
+          name: normalizedName,
+          category: category || 'geral',
+          lastQuantity: quantity,
+          lastUsed: new Date().toISOString(),
+          suggestedPrice: parseFloat(price) || 0
         }
-        return product
+        if (existingIdx >= 0) {
+          updated[existingIdx] = { ...updated[existingIdx], ...entry }
+        } else {
+          updated.push(entry)
+        }
       })
-    )
+      return updated
+    })
 
     setCurrentView('main')
+  }
+
+  const createNewList = (selectedProducts) => {
+    if (currentList.length > 0) {
+      setPendingOverwrite({ type: 'newList', payload: selectedProducts })
+      return
+    }
+    executeCreateNewList(selectedProducts)
   }
 
   const removeProduct = (productName) => {
@@ -244,17 +279,38 @@ function App() {
     setCurrentList([])
   }
 
-  const restoreCart = (cart) => {
-    // Restaura o carrinho como uma nova lista
+  const executeRestoreCart = (cart) => {
     const restoredItems = cart.items.map(item => ({
       ...item,
-      id: generateUniqueId(), // Novo ID
-      status: 'pending', // Reset status
+      id: generateUniqueId(),
+      status: 'pending',
       addedAt: new Date().toISOString()
     }))
-    
     setCurrentList(restoredItems)
     setCurrentView('main')
+  }
+
+  const restoreCart = (cart) => {
+    if (currentList.length > 0) {
+      setPendingOverwrite({ type: 'restore', payload: cart })
+      return
+    }
+    executeRestoreCart(cart)
+  }
+
+  const handleOverwriteConfirm = () => {
+    if (!pendingOverwrite) return
+    const { type, payload } = pendingOverwrite
+    setPendingOverwrite(null)
+    if (type === 'restore') {
+      executeRestoreCart(payload)
+    } else if (type === 'newList') {
+      executeCreateNewList(payload)
+    }
+  }
+
+  const handleOverwriteCancel = () => {
+    setPendingOverwrite(null)
   }
 
   return (
@@ -296,11 +352,22 @@ function App() {
           
           {/* Tour Guide */}
           <ErrorBoundary>
-            <Tour 
-              isOpen={showTour} 
-              onClose={handleCloseTour} 
+            <Tour
+              isOpen={showTour}
+              onClose={handleCloseTour}
             />
           </ErrorBoundary>
+
+          {/* Overwrite confirmation */}
+          <ConfirmDialog
+            isOpen={!!pendingOverwrite}
+            title="Substituir Lista Atual"
+            message="Você tem uma lista ativa com itens. Deseja substituí-la? Os itens atuais serão perdidos."
+            onConfirm={handleOverwriteConfirm}
+            onCancel={handleOverwriteCancel}
+            confirmText="Sim, Substituir"
+            cancelText="Cancelar"
+          />
         </div>
       </div>
     </ErrorBoundary>
