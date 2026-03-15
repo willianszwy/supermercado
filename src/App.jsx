@@ -6,7 +6,9 @@ import SmartListView from './components/SmartListView'
 import Tour from './components/Tour'
 import ConfirmDialog from './components/ConfirmDialog'
 import ErrorBoundary from './components/ErrorBoundary'
+import MigrationHandler from './components/MigrationHandler'
 import { useLocalStorage } from './hooks/useLocalStorage'
+import { useIndexedDB } from './hooks/useIndexedDB'
 import { normalizeProductText } from './utils/textUtils'
 import { generateUniqueId } from './utils/idUtils'
 import { validateProductInput } from './utils/validationUtils'
@@ -14,6 +16,8 @@ import { initializeHaptics } from './utils/hapticUtils'
 
 function App() {
   const [currentView, setCurrentView] = useState('main')
+
+  // Temporarily use localStorage while we fix IndexedDB issues
   const [currentList, setCurrentList] = useLocalStorage('shoppingList', [])
   const [allProducts, setAllProducts] = useLocalStorage('allProducts', [])
   const [cartHistory, setCartHistory] = useLocalStorage('cartHistory', [])
@@ -22,9 +26,12 @@ function App() {
   const [, setGestureInteractionCount] = useLocalStorage('gestureInteractionCount', 0)
   const [pendingOverwrite, setPendingOverwrite] = useState(null) // { type: 'restore'|'newList', payload }
 
+  // No loading state needed for localStorage
+  const isLoading = false
+
   // Criar lista de exemplo na primeira instalação
   useEffect(() => {
-    if (!hasSeenTour && currentView === 'main' && currentList.length === 0) {
+    if (!isLoading && !hasSeenTour && currentView === 'main' && currentList.length === 0) {
       const exampleList = [
         { id: generateUniqueId(), name: 'Banana', quantity: 6, category: 'hortifruti', status: 'pending', addedAt: new Date().toISOString(), price: 3.99 },
         { id: generateUniqueId(), name: 'Leite Integral', quantity: 2, category: 'laticinios', status: 'pending', addedAt: new Date().toISOString(), price: 5.49 },
@@ -34,10 +41,10 @@ function App() {
         { id: generateUniqueId(), name: 'Detergente', quantity: 1, category: 'limpeza', status: 'completed', addedAt: new Date().toISOString(), price: 2.99 },
         { id: generateUniqueId(), name: 'Shampoo', quantity: 1, category: 'higiene', status: 'missing', addedAt: new Date().toISOString(), price: 12.50 }
       ]
-      
+
       setCurrentList(exampleList)
-      
-      // Adicionar produtos ao histórico para futura reutilização  
+
+      // Adicionar produtos ao histórico para futura reutilização
       const exampleProducts = exampleList.map(item => ({
         name: item.name,
         category: item.category,
@@ -47,7 +54,7 @@ function App() {
       }))
       setAllProducts(exampleProducts)
     }
-  }, [hasSeenTour, currentView, currentList.length, setCurrentList, setAllProducts])
+  }, [isLoading, hasSeenTour, currentView, currentList.length, setCurrentList, setAllProducts])
 
   // Initialize haptic feedback system
   useEffect(() => {
@@ -58,7 +65,7 @@ function App() {
         console.debug('Haptic initialization failed:', error)
       }
     }
-    
+
     // Initialize haptics after a short delay to ensure user has interacted
     const timer = setTimeout(initHaptics, 1000)
     return () => clearTimeout(timer)
@@ -66,31 +73,30 @@ function App() {
 
   // Mostrar tour automaticamente na primeira visita
   useEffect(() => {
-    if (!hasSeenTour && currentView === 'main') {
+    if (!isLoading && !hasSeenTour && currentView === 'main') {
       const timer = setTimeout(() => {
         setShowTour(true)
       }, 1500) // Delay maior para carregar a lista de exemplo
       return () => clearTimeout(timer)
     }
-  }, [hasSeenTour, currentView])
+  }, [isLoading, hasSeenTour, currentView])
 
   const addProduct = (name, quantity, category = 'geral', price = 0) => {
     // Validate input before processing
     const validation = validateProductInput({ name, quantity, price, category })
-    
+
     if (!validation.valid) {
-      // Show error to user (you may want to add error state for UI feedback)
       console.error('Product validation failed:', validation.error)
       return { success: false, error: validation.error }
     }
 
     const validatedData = validation.value
     const normalizedName = normalizeProductText(validatedData.name)
-    
+
     if (!normalizedName) {
       return { success: false, error: 'Nome do produto inválido após normalização' }
     }
-    
+
     const product = {
       id: generateUniqueId(),
       name: normalizedName,
@@ -115,7 +121,7 @@ function App() {
           suggestedPrice: validatedData.price
         }]
       } else {
-        return prev.map(p => 
+        return prev.map(p =>
           p.name.toLowerCase() === normalizedName.toLowerCase()
             ? { ...p, category: validatedData.category, lastQuantity: validatedData.quantity, lastUsed: new Date().toISOString(), suggestedPrice: validatedData.price || p.suggestedPrice || 0 }
             : p
@@ -130,12 +136,12 @@ function App() {
     if (status === 'delete') {
       setCurrentList(prev => prev.filter(product => product.id !== id))
     } else {
-      setCurrentList(prev => 
-        prev.map(product => 
+      setCurrentList(prev =>
+        prev.map(product =>
           product.id === id ? { ...product, status } : product
         )
       )
-      
+
       // Incrementar contador de interações com gestos
       if (status === 'completed' || status === 'missing') {
         setGestureInteractionCount(prev => prev + 1)
@@ -316,6 +322,18 @@ function App() {
     setPendingOverwrite(null)
   }
 
+  // Show loading screen while data is being loaded
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-white">
@@ -362,7 +380,7 @@ function App() {
               />
             </ErrorBoundary>
           ) : null}
-          
+
           {/* Tour Guide */}
           <ErrorBoundary>
             <Tour
