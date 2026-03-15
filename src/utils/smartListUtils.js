@@ -6,13 +6,14 @@
  *   - urgência:   quanto tempo passou desde a última compra vs. o intervalo médio
  *   - faltou:     quantas vezes o produto foi marcado como "missing" (demanda reprimida)
  *
- * Score final = frequência × min(urgência, 2) × (1 + taxaDeFalta)
- * Confidence  = min(score × 50, 100) — exibido como 0-100%
+ * Score final = frequência × (1 + urgência) × (1 + taxaDeFalta)
+ * Urgência é limitada a URGENCY_CAP=2.0, contribuindo até (1+2.0)=3× no score.
+ * Confidence  = min(score × 33, 100) — exibido como 0-100%
  */
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24
 const DEFAULT_AVG_DAYS = 7   // assume semanal quando há apenas 1 compra
-const URGENCY_CAP = 2.0      // máximo de urgência (2× o intervalo médio)
+const URGENCY_CAP = 2.0      // urgência máxima; contribui até (1 + URGENCY_CAP) = 3× no score
 const MIN_SCORE = 0.15       // threshold mínimo para aparecer na lista
 
 export function computeSmartList(cartHistory) {
@@ -27,10 +28,16 @@ export function computeSmartList(cartHistory) {
   cartHistory.forEach(cart => {
     const cartTime = new Date(cart.finishedAt).getTime()
     if (isNaN(cartTime)) return
+    if (!Array.isArray(cart.items)) return  // guard contra entradas corrompidas
+
+    // Deduplicar itens pelo nome dentro de uma mesma compra para não inflar frequency
+    const seenInCart = new Set()
 
     cart.items.forEach(item => {
       if (!item.name) return
       const key = item.name.toLowerCase()
+      if (seenInCart.has(key)) return   // ignorar duplicata na mesma compra
+      seenInCart.add(key)
 
       if (!stats[key]) {
         stats[key] = {
@@ -41,6 +48,7 @@ export function computeSmartList(cartHistory) {
           appearances: 0,
           missingCount: 0,
           purchaseTimes: [],
+          maxTime: -Infinity,  // rastreado separadamente para evitar leitura de array mutado
         }
       }
 
@@ -49,8 +57,9 @@ export function computeSmartList(cartHistory) {
       if (item.status === 'missing') s.missingCount++
       s.purchaseTimes.push(cartTime)
 
-      // Manter dados mais recentes
-      if (cartTime >= Math.max(...s.purchaseTimes)) {
+      // Manter dados mais recentes — comparar maxTime ANTES de atualizá-lo
+      if (cartTime >= s.maxTime) {
+        s.maxTime = cartTime
         s.name = item.name
         s.category = item.category || s.category
         s.lastQuantity = item.quantity || s.lastQuantity
@@ -75,13 +84,13 @@ export function computeSmartList(cartHistory) {
       avgDaysBetween = intervals.reduce((a, b) => a + b, 0) / intervals.length
     }
 
-    const frequency  = s.appearances / totalCarts                        // 0–1
-    const urgency    = Math.min(daysSinceLast / Math.max(avgDaysBetween, 1), URGENCY_CAP)
-    const missingRate = s.missingCount / s.appearances                   // 0–1
+    const frequency   = s.appearances / totalCarts                       // 0–1
+    const urgency     = Math.min(daysSinceLast / Math.max(avgDaysBetween, 1), URGENCY_CAP)
+    const missingRate  = s.missingCount / s.appearances                  // 0–1
     const missingBoost = 1 + missingRate                                 // 1–2
 
-    const score      = frequency * urgency * missingBoost
-    const confidence = Math.min(Math.round(score * 50), 100)
+    const score      = frequency * (1 + urgency) * missingBoost
+    const confidence = Math.min(Math.round(score * 33), 100)
 
     return {
       name: s.name,

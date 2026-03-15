@@ -42,16 +42,19 @@ describe('computeSmartList', () => {
     // frequência = 3/3 = 1.0
   })
 
-  it('produto comprado recentemente tem urgência baixa', () => {
-    const history = [
-      makeCart([{ id: '1', name: 'Leite', quantity: 2, category: 'laticinios', price: 5 }], 1), // comprado ontem
+  it('produto comprado recentemente tem score menor que produto atrasado', () => {
+    const historyRecente = [
+      makeCart([{ id: '1', name: 'Leite', quantity: 2, category: 'laticinios', price: 5 }], 1), // ontem
     ]
-    const result = computeSmartList(history)
-    const leite = result.find(p => p.name === 'Leite')
-    if (leite) {
-      // urgência = 1 dia / 7 dias default ≈ 0.14 → score baixo
-      expect(leite.score).toBeLessThan(0.5)
-    }
+    const historyAtrasado = [
+      makeCart([{ id: '1', name: 'Leite', quantity: 2, category: 'laticinios', price: 5 }], 14), // 2 semanas atrás
+      makeCart([{ id: '2', name: 'Leite', quantity: 2, category: 'laticinios', price: 5 }], 21),
+    ]
+    const recente = computeSmartList(historyRecente).find(p => p.name === 'Leite')
+    const atrasado = computeSmartList(historyAtrasado).find(p => p.name === 'Leite')
+    expect(recente).toBeDefined()
+    expect(atrasado).toBeDefined()
+    expect(recente.score).toBeLessThan(atrasado.score)
   })
 
   it('produto atrasado (passou do intervalo médio) tem score maior', () => {
@@ -100,19 +103,55 @@ describe('computeSmartList', () => {
   })
 
   it('produtos com score abaixo do mínimo são filtrados', () => {
-    // Produto comprado há 1 dia com intervalo médio de 30 dias → urgência baixíssima
+    const history = [
+      makeCart([{ id: '1', name: 'Raro', quantity: 1, category: 'geral', price: 0 }], 0),
+      makeCart([{ id: '2', name: 'Raro2', quantity: 1, category: 'geral', price: 0 }], 1),
+      makeCart([{ id: '3', name: 'Raro3', quantity: 1, category: 'geral', price: 0 }], 2),
+      makeCart([{ id: '4', name: 'Raro4', quantity: 1, category: 'geral', price: 0 }], 3),
+      makeCart([{ id: '5', name: 'Raro5', quantity: 1, category: 'geral', price: 0 }], 4),
+      makeCart([{ id: '6', name: 'Raro6', quantity: 1, category: 'geral', price: 0 }], 5),
+      makeCart([{ id: '7', name: 'Raro7', quantity: 1, category: 'geral', price: 0 }], 6),
+    ]
+    const result = computeSmartList(history)
+    result.forEach(p => {
+      expect(p.score).toBeGreaterThanOrEqual(0.15)
+    })
+  })
+
+  it('lista não fica vazia imediatamente após finalizar compra', () => {
+    // Bug regressão: score = freq × urgency produzia 0 quando urgency ≈ 0
     const history = [
       makeCart([
-        { id: '1', name: 'Recente', quantity: 1, category: 'geral', price: 0 },
-        { id: '2', name: 'Recente', quantity: 1, category: 'geral', price: 0 },
+        { id: '1', name: 'Arroz', quantity: 1, category: 'mercearia', price: 7 },
+        { id: '2', name: 'Feijão', quantity: 1, category: 'mercearia', price: 8 },
       ], 0), // comprado hoje
     ]
     const result = computeSmartList(history)
-    const recente = result.find(p => p.name === 'Recente')
-    // Pode ser filtrado por score < 0.15
-    if (recente) {
-      expect(recente.score).toBeGreaterThanOrEqual(0.15)
-    }
+    expect(result.length).toBeGreaterThan(0)
+  })
+
+  it('cart.items nulo/ausente não causa crash', () => {
+    const history = [
+      { id: 'bad', finishedAt: new Date().toISOString(), items: null },
+      makeCart([{ id: '1', name: 'Arroz', quantity: 1, category: 'mercearia', price: 7 }], 8),
+    ]
+    expect(() => computeSmartList(history)).not.toThrow()
+    const result = computeSmartList(history)
+    expect(result.find(p => p.name === 'Arroz')).toBeDefined()
+  })
+
+  it('duplicatas na mesma compra não inflam frequency além de 1', () => {
+    const history = [
+      makeCart([
+        { id: '1', name: 'Leite', quantity: 2, category: 'laticinios', price: 5 },
+        { id: '2', name: 'Leite', quantity: 3, category: 'laticinios', price: 5 }, // duplicata
+      ], 8),
+    ]
+    const result = computeSmartList(history)
+    const leite = result.find(p => p.name === 'Leite')
+    expect(leite).toBeDefined()
+    // frequency deve ser 1/1 = 1.0, não 2/1 = 2.0
+    expect(leite.appearances).toBe(1)
   })
 
   it('retorna quantidade e preço do produto mais recente', () => {
