@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import ShoppingList from './components/ShoppingList'
 import NewListView from './components/NewListView'
 import HistoryView from './components/HistoryView'
+import SmartListView from './components/SmartListView'
 import Tour from './components/Tour'
 import ConfirmDialog from './components/ConfirmDialog'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -327,10 +328,12 @@ function App() {
                 onUpdateStatus={updateProductStatus}
                 onUpdateProduct={updateProduct}
                 onNewList={() => setCurrentView('newList')}
+                onSmartList={() => setCurrentView('smartList')}
                 onClearList={clearList}
                 onShowTour={handleShowTour}
                 onFinishCart={finishCart}
                 onShowHistory={() => setCurrentView('history')}
+                hasHistory={cartHistory.length > 0}
               />
             </ErrorBoundary>
           ) : currentView === 'newList' ? (
@@ -348,6 +351,14 @@ function App() {
                 cartHistory={cartHistory}
                 onBack={() => setCurrentView('main')}
                 onRestoreCart={restoreCart}
+              />
+            </ErrorBoundary>
+          ) : currentView === 'smartList' ? (
+            <ErrorBoundary>
+              <SmartListView
+                cartHistory={cartHistory}
+                onCreateList={createNewList}
+                onBack={() => setCurrentView('main')}
               />
             </ErrorBoundary>
           ) : null}
