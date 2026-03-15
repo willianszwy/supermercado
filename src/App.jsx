@@ -178,20 +178,25 @@ function App() {
         : -1
       const byNewName = prev.findIndex(p => p.name.toLowerCase() === normalizedName.toLowerCase())
 
-      const updatedEntry = {
+      const baseEntry = {
         name: normalizedName,
         category,
         lastQuantity: quantity,
         lastUsed: new Date().toISOString(),
-        suggestedPrice: price || 0
       }
 
       if (byOldName >= 0) {
-        return prev.map((p, i) => i === byOldName ? { ...p, ...updatedEntry } : p)
+        // Preserve existing suggestedPrice when new price is 0 (same contract as addProduct)
+        return prev.map((p, i) => i === byOldName
+          ? { ...p, ...baseEntry, suggestedPrice: price || p.suggestedPrice || 0 }
+          : p)
       } else if (byNewName >= 0) {
-        return prev.map((p, i) => i === byNewName ? { ...p, ...updatedEntry } : p)
+        return prev.map((p, i) => i === byNewName
+          ? { ...p, ...baseEntry, suggestedPrice: price || p.suggestedPrice || 0 }
+          : p)
       }
-      return prev
+      // Product not in catalog (e.g., came from a restored cart) — add it now
+      return [...prev, { ...baseEntry, suggestedPrice: price || 0 }]
     })
 
     return { success: true }
@@ -201,11 +206,11 @@ function App() {
     const newList = selectedProducts.map(({ name, quantity, category, price }) => ({
       id: generateUniqueId(),
       name,
-      quantity,
+      quantity: Math.min(999, Math.max(1, parseInt(quantity) || 1)),
       category: category || 'geral',
       status: 'pending',
       addedAt: new Date().toISOString(),
-      price: parseFloat(price) || 0
+      price: Math.min(9999.99, Math.max(0, parseFloat(price) || 0))
     }))
 
     setCurrentList(newList)
@@ -222,9 +227,9 @@ function App() {
         const entry = {
           name: normalizedName,
           category: category || 'geral',
-          lastQuantity: quantity,
+          lastQuantity: Math.min(999, Math.max(1, parseInt(quantity) || 1)),
           lastUsed: new Date().toISOString(),
-          suggestedPrice: parseFloat(price) || 0
+          suggestedPrice: Math.min(9999.99, Math.max(0, parseFloat(price) || 0))
         }
         if (existingIdx >= 0) {
           updated[existingIdx] = { ...updated[existingIdx], ...entry }
@@ -247,7 +252,7 @@ function App() {
   }
 
   const removeProduct = (productName) => {
-    setAllProducts(prev => prev.filter(product => product.name !== productName))
+    setAllProducts(prev => prev.filter(product => product.name.toLowerCase() !== productName.toLowerCase()))
   }
 
   const clearList = () => {
@@ -269,10 +274,7 @@ function App() {
     const finishedCart = {
       id: generateUniqueId(),
       items: [...currentList],
-      finishedAt: new Date().toISOString(),
-      totalItems: currentList.length,
-      completedItems: currentList.filter(item => item.status === 'completed').length,
-      missingItems: currentList.filter(item => item.status === 'missing').length
+      finishedAt: new Date().toISOString()
     }
 
     setCartHistory(prev => [finishedCart, ...prev])

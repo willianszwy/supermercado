@@ -409,7 +409,7 @@ function WhatsAppImportModal({ onImport, onClose }) {
       if (cleanLine.match(/^[\s*\-=_~`#+.!?]*$/) ||
           /^[\u{1F4DD}\u{2728}\u{1F539}\u{1F6D2}\u{1F49A}\u{2764}\u{1F389}\u{1F4B0}\s]*$/u.test(cleanLine) ||
           cleanLine.length < 2 ||
-          cleanLine.length > 50) { // Muito longo provavelmente não é produto
+          cleanLine.length > 100) { // Limite alinhado ao validateProductName (máx 100 chars)
         continue
       }
 
